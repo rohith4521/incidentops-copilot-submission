@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "smoke": "node scripts/frontend-smoke.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "credibility-smoke": "node scripts/frontend-credibility-smoke.mjs"
   },
   "dependencies": {
     "@types/three": "^0.186.0",
