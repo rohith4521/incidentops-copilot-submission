@@ -100,39 +100,75 @@ export default function App() {
   // Real Backend connection: Commit Retention / Postmortem
   const handleCommitRetention = async () => {
     setRetentionStatus('COMMITTING');
+
+    const runbookId =
+      activeScenarioId === 'INC-108'
+        ? 'RB-REDIS-TLS-ROTATE'
+        : activeScenarioId === 'INC-112'
+          ? 'RB-K8S-SCALE-LIMITS'
+          : 'RB-PGBOUNCER-120';
+
+    const rootCause =
+      activeScenarioId === 'INC-108'
+        ? 'Redis TLS Root CA Expiry'
+        : activeScenarioId === 'INC-112'
+          ? 'Inventory worker memory exhaustion'
+          : 'PgBouncer Max Client Exhaustion';
+
+    const payload = {
+      incident_id: activeScenarioId,
+      title: `Incident Resolution Precedent - ${activeScenarioId}`,
+      service: activeScenarioId === 'INC-108' ? 'auth-service' : activeScenarioId === 'INC-112' ? 'inventory-worker' : 'payment-gateway',
+      severity: 'HIGH',
+      root_cause: rootCause,
+      trigger: 'Incident response scenario selected in the command center.',
+      impact_summary: 'Operational impact captured by the incident response workflow.',
+      timeline: [{ time: 'T+0m', event: 'Incident response scenario reviewed by SRE.' }],
+      resolution_steps: [`Reviewed and validated ${runbookId} as the incident runbook.`],
+      runbook_executed: runbookId,
+      preventative_actions: ['Retain verified incident outcome for future Hindsight recall.'],
+      tags: ['incidentops', 'verified-postmortem'],
+      source_incident_id: activeScenarioId,
+    };
+
     try {
-      // Connect to real backend postmortem retention API
-      await fetch('/api/postmortems', {
+      const response = await fetch('/api/postmortems/commit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          incident_id: activeScenarioId,
-          title: `Incident Resolution Precedent - ${activeScenarioId}`,
-          root_cause: activeScenarioId === 'INC-108' ? 'Redis TLS Root CA Expiry' : 'PgBouncer Max Client Exhaustion',
-          verified: true,
-          retention_hash: 'sha256:7b9f84a1e948c201a0df27b8764098231',
-        }),
-      }).catch(() => null);
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        let detail = `HTTP ${response.status}`;
+        try {
+          const responseBody = await response.json();
+          detail = responseBody?.detail ?? detail;
+        } catch {
+          // Keep the HTTP status when the response is not JSON.
+        }
+        setRetentionStatus('UNCOMMITTED');
+        showToast(`Postmortem commit blocked: ${detail}`);
+        return;
+      }
+
+      setRetentionStatus('RETAINED');
+      showToast('Human-verified postmortem committed to Hindsight memory.');
     } catch {
-      // Fallback if offline
-    } finally {
-      setTimeout(() => {
-        setRetentionStatus('RETAINED');
-        showToast('Postmortem cryptographic hash sealed into Hindsight continuous memory.');
-      }, 900);
+      setRetentionStatus('UNCOMMITTED');
+      showToast('Postmortem retention unavailable. Nothing was marked as retained.');
     }
   };
 
   return (
     <div className="bg-[#020408] text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col justify-between selection:bg-primary selection:text-on-primary">
-      {/* Exact Google Stitch Persistent Airgap Header */}
+      {/* Google Stitch persistent header */}
       <StitchHeader
         currentView={currentView}
         onNavigate={(v) => navigateTo(v as StitchView)}
         onAction={showToast}
       />
 
-      {/* Main Content: Exact Google Stitch Screen Views */}
+      {/* Main content */}
       <main className="w-full pt-16 bg-[#020408] flex-1 pb-14">
         {currentView === 'spatial-hero-memory-theater' && (
           <SpatialHeroTheaterView onNavigate={(v) => navigateTo(v as StitchView)} />
@@ -159,7 +195,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Exact Google Stitch Persistent Airgap Footer */}
+      {/* Persistent footer */}
       <StitchFooter />
     </div>
   );
