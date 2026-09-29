@@ -6,10 +6,18 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Lint, Type Check, Scan & Pytest Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     env:
       ENVIRONMENT: test
@@ -25,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -40,29 +48,26 @@ jobs:
           pip install ruff mypy pip-audit
 
       - name: Ruff Lint Quality Gate
-        run: |
-          ruff check app/
+        run: ruff check app/
 
       - name: Mypy Type Check Gate
-        run: |
-          mypy app/
+        run: mypy app/
 
       - name: Dependency Vulnerability Scan Gate
-        run: |
-          pip-audit -r requirements.txt
+        run: pip-audit -r requirements.txt
 
       - name: Run Complete Test Suite
-        run: |
-          pytest -v
+        run: pytest -v
 
   docker-build:
     name: Validate Docker Container Build
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Build Docker Image (No Registry Push)
-        run: |
-          docker build -t incidentops-copilot:ci .
+        run: docker build --pull -t incidentops-copilot:ci .
