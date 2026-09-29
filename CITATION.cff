@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+title: "IncidentOps Copilot"
+message: "If you use or reference IncidentOps Copilot, please cite this repository."
+type: software
+authors:
+  - family-names: Rohith
+    given-names: Sreeram
+repository-code: "https://github.com/rohith4521/incidentops-copilot-submission"
+url: "https://incidentops-copilot.vercel.app"
+license: MIT
+date-released: 2026-09-29
