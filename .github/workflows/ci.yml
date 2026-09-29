@@ -29,7 +29,7 @@ jobs:
       GROQ_MODEL: llama-3.3-70b-versatile
       FALLBACK_LLM_PROVIDER: mock
       AUTH_JWT_SECRET: test-only-jwt-secret
-      AUTH_SRE_API_KEYS: "test-key-alice:lead-sre-alice,test-key-oncall:oncall-sre,test-key-admin:admin-sre"
+      AUTH_SRE_API_KEYS: "sre-key-alice:lead-sre-alice,sre-key-oncall:oncall-sre,sre-key-admin:admin-sre"
 
     steps:
       - name: Checkout Repository
