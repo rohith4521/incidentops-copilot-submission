@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 620" role="img" aria-labelledby="title desc">
+<title id="title">IncidentOps Copilot continuous memory lifecycle</title><desc id="desc">A lifecycle from incident detection through recall, relevance, trusted evidence, resolution, postmortem retention and repeat recall.</desc>
+<defs><linearGradient id="bg" x1="0" x2="1"><stop stop-color="#04080b"/><stop offset="1" stop-color="#071419"/></linearGradient><linearGradient id="g" x1="0" x2="1"><stop stop-color="#15f2a2"/><stop offset="1" stop-color="#21d7ff"/></linearGradient></defs>
+<rect width="1400" height="620" rx="28" fill="url(#bg)"/>
+<g font-family="Inter,Arial,sans-serif"><text x="70" y="75" font-size="18" letter-spacing="4" fill="#7ee7c0">CONTINUOUS MEMORY / LIFECYCLE</text><text x="70" y="115" font-size="36" font-weight="700" fill="#e8f0f2">Every verified resolution becomes future evidence.</text></g>
+<g fill="#0b1519" stroke="#263a40" stroke-width="2">
+<rect x="70" y="220" width="180" height="120" rx="18"/><rect x="285" y="220" width="180" height="120" rx="18"/><rect x="500" y="220" width="180" height="120" rx="18"/><rect x="715" y="220" width="180" height="120" rx="18"/><rect x="930" y="220" width="180" height="120" rx="18"/><rect x="1145" y="220" width="180" height="120" rx="18"/>
+</g>
+<g font-family="Inter,Arial,sans-serif" fill="#e8f0f2" font-size="17" font-weight="700">
+<text x="98" y="258">1 · ALERT</text><text x="313" y="258">2 · RECALL</text><text x="528" y="258">3 · RELEVANCE</text><text x="743" y="258">4 · TRUST</text><text x="958" y="258">5 · RESOLVE</text><text x="1173" y="258">6 · RETAIN</text></g>
+<g font-family="Inter,Arial,sans-serif" fill="#91a4aa" font-size="13">
+<text x="98" y="286">new incident</text><text x="313" y="286">historical candidates</text><text x="528" y="286">reject decoys</text><text x="743" y="286">provenance + evidence</text><text x="958" y="286">human-gated action</text><text x="1173" y="286">postmortem memory</text></g>
+<g fill="none" stroke="url(#g)" stroke-width="4"><path d="M250 280H285"/><path d="M465 280H500"/><path d="M680 280H715"/><path d="M895 280H930"/><path d="M1110 280H1145"/></g>
+<g font-family="Inter,Arial,sans-serif" fill="#72e6b6" font-size="13"><text x="70" y="420">NOVEL INCIDENT</text><text x="70" y="448" fill="#91a4aa">No sufficiently relevant historical incident → fresh investigation → verified postmortem → retained memory.</text><text x="70" y="500">REPEAT INCIDENT</text><text x="70" y="528" fill="#91a4aa">Current alert reconnects to verified historical memory → evidence-backed diagnosis → recommended runbook.</text></g>
+<path d="M1235 350C1235 470 180 560 180 350" fill="none" stroke="#19dca1" stroke-width="2" stroke-dasharray="8 10" opacity=".8"/></svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 560" role="img" aria-labelledby="title desc">
+<title id="title">IncidentOps Copilot memory trust gate</title><desc id="desc">Four distinct memory states: retrieved, relevant, trusted and verified.</desc>
+<rect width="1400" height="560" rx="28" fill="#05090c"/>
+<g font-family="Inter,Arial,sans-serif"><text x="70" y="75" font-size="18" letter-spacing="4" fill="#7ee7c0">MEMORY TRUST MODEL</text><text x="70" y="115" font-size="36" font-weight="700" fill="#e8f0f2">Retrieved ≠ Relevant ≠ Trusted ≠ Verified</text></g>
+<g font-family="Inter,Arial,sans-serif">
+<g fill="#10171b" stroke="#31434a" stroke-width="2"><rect x="70" y="190" width="270" height="190" rx="18"/><rect x="390" y="190" width="270" height="190" rx="18"/><rect x="710" y="190" width="270" height="190" rx="18"/><rect x="1030" y="190" width="300" height="190" rx="18"/></g>
+<g fill="#e8f0f2" font-size="21" font-weight="700"><text x="100" y="235">RETRIEVED</text><text x="420" y="235">RELEVANT</text><text x="740" y="235">TRUSTED</text><text x="1060" y="235">VERIFIED</text></g>
+<g fill="#91a4aa" font-size="14"><text x="100" y="270">Candidate returned by</text><text x="100" y="292">memory retrieval.</text><text x="420" y="270">Matches the incident</text><text x="420" y="292">failure mode and context.</text><text x="740" y="270">Evidence and provenance</text><text x="740" y="292">survive the trust gate.</text><text x="1060" y="270">Human-confirmed outcome</text><text x="1060" y="292">retained for future use.</text></g>
+<g font-size="13"><text x="100" y="340" fill="#f0a8b4">May be a decoy</text><text x="420" y="340" fill="#f0d58c">Context-sensitive</text><text x="740" y="340" fill="#7ee7c0">Evidence-backed</text><text x="1060" y="340" fill="#67e4ff">Persistent operational memory</text></g>
+</g>
+<g fill="none" stroke="#19dca1" stroke-width="4"><path d="M340 285H390"/><path d="M660 285H710"/><path d="M980 285H1030"/></g>
+<g font-family="Inter,Arial,sans-serif" fill="#91a4aa" font-size="14"><text x="70" y="455">The UI keeps rejected candidates inspectable rather than silently pretending retrieval is truth.</text><text x="70" y="485">This separation is a core safety and reliability property of the system.</text></g></svg>
