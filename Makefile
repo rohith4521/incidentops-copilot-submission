@@ -2,7 +2,7 @@ PYTHON ?= python
 PIP ?= pip
 NPM ?= npm
 
-.PHONY: install test coverage lint typecheck audit build frontend smoke docker ci
+.PHONY: install test coverage lint typecheck audit build frontend smoke credibility-smoke docker ci
 
 install:
 	$(PIP) install -r requirements.txt
@@ -30,6 +30,9 @@ build:
 
 smoke:
 	node scripts/frontend-smoke.mjs
+
+credibility-smoke:
+	node scripts/frontend-credibility-smoke.mjs
 
 frontend:
 	$(NPM) run dev
