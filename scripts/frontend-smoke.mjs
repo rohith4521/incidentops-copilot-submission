@@ -19,7 +19,7 @@ if (assetRefs.length === 0) {
 }
 
 for (const ref of assetRefs) {
-  const normalized = ref.replace(/^\//, "");
+  const normalized = ref.replace(/^\/static\/dist\//, "").replace(/^\//, "");
   if (!existsSync(join(dist, normalized))) {
     throw new Error(`Frontend smoke test failed: referenced asset is missing: ${ref}`);
   }
