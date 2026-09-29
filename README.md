@@ -19,6 +19,22 @@ It recalls historical incidents through **Hindsight**, filters retrieval through
 
 ---
 
+## Judge's 60-second path
+
+If you have one minute, read these in order:
+
+**01. Core idea** → [Continuous operational memory](#the-core-idea)  
+**02. Differentiator** → [Retrieved ≠ Relevant ≠ Trusted ≠ Verified](#trust-model)  
+**03. Product** → [Live demo](https://incidentops-copilot.vercel.app)  
+**04. Architecture** → [System architecture](#architecture)  
+**05. Evidence** → [Verification](#verification)  
+**06. Depth** → [Engineering decisions](docs/decision-records.md)  
+
+> **The one thing to remember:** IncidentOps Copilot is not just an incident chatbot. It is an evidence-gated memory loop that turns verified incident outcomes into reusable operational knowledge.
+
+---
+
+
 ## The problem
 
 Most AI incident assistants are effectively stateless:
@@ -94,7 +110,7 @@ A retrieval result is a candidate—not automatically truth.
 
 ---
 
-## See the architecture
+## Visual system overview
 
 ![IncidentOps Copilot architecture](assets/architecture.svg)
 
