@@ -29,6 +29,7 @@ If you have one minute, read these in order:
 **04. Architecture** → [System architecture](#architecture)  
 **05. Evidence** → [Verification](#verification)  
 **06. Depth** → [Engineering decisions](docs/decision-records.md)  
+**07. Auditability** → [Judge audit guide](docs/judge-audit.md)  
 
 > **The one thing to remember:** IncidentOps Copilot is not just an incident chatbot. It is an evidence-gated memory loop that turns verified incident outcomes into reusable operational knowledge.
 
@@ -326,7 +327,9 @@ Quality gates include:
 
 The repository also contains dedicated evaluation code for memory quality, diagnosis quality, held-out behavior and scale experiments.
 
-See [docs/evaluation.md](docs/evaluation.md).
+The frontend production build is enforced separately through GitHub Actions.
+
+See [docs/evaluation.md](docs/evaluation.md), [docs/test-matrix.md](docs/test-matrix.md) and [docs/judge-audit.md](docs/judge-audit.md).
 
 ### What we deliberately do not claim
 
@@ -353,6 +356,10 @@ Detailed documentation:
 - [docs/memory-model.md](docs/memory-model.md)
 - [docs/security.md](docs/security.md)
 - [docs/evaluation.md](docs/evaluation.md)
+- [docs/test-matrix.md](docs/test-matrix.md)
+- [docs/threat-model.md](docs/threat-model.md)
+- [docs/reproducibility.md](docs/reproducibility.md)
+- [docs/judge-audit.md](docs/judge-audit.md)
 
 ---
 
