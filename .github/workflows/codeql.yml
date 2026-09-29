@@ -12,12 +12,17 @@ permissions:
   contents: read
   security-events: write
 
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze-python:
     name: CodeQL Python
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: github/codeql-action/init@v3
         with:
           languages: python
@@ -25,11 +30,13 @@ jobs:
       - uses: github/codeql-action/analyze@v3
         with:
           category: /language:python
+
   analyze-javascript:
     name: CodeQL JavaScript
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
