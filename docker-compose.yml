@@ -1,0 +1,49 @@
+services:
+  # IncidentOps Copilot FastAPI Backend Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: incidentops-api
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=${PORT:-8000}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - HINDSIGHT_API_URL=${HINDSIGHT_API_URL:-http://hindsight:8888}
+      - HINDSIGHT_API_KEY=${HINDSIGHT_API_KEY:-}
+      - HINDSIGHT_BANK_ID=${HINDSIGHT_BANK_ID:-sre-incidentops-production}
+      - HINDSIGHT_TIMEOUT_SECONDS=${HINDSIGHT_TIMEOUT_SECONDS:-30.0}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      - FALLBACK_LLM_PROVIDER=${FALLBACK_LLM_PROVIDER:-mock}
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-}
+      - AUTH_SRE_API_KEYS=${AUTH_SRE_API_KEYS:-}
+      - PROVENANCE_DB_PATH=${PROVENANCE_DB_PATH:-app/data/provenance_audit.db}
+      - WEBHOOK_DB_PATH=${WEBHOOK_DB_PATH:-app/data/provenance_audit.db}
+    volumes:
+      - api_data:/app/app/data
+    depends_on:
+      - hindsight
+    restart: unless-stopped
+
+  # Self-Hosted Hindsight Memory Engine (Alternative to Hindsight Cloud)
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: hindsight-memory-engine
+    ports:
+      - "8888:8888"
+    environment:
+      - PORT=8888
+      - LOG_LEVEL=info
+    volumes:
+      - hindsight_data:/data
+    restart: unless-stopped
+
+volumes:
+  hindsight_data:
+    driver: local
+  api_data:
+    driver: local

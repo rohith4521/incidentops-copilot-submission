@@ -1,0 +1,275 @@
+[
+  {
+    "case_id": "HELD-OUT-PARA-001",
+    "category": "paraphrased_variant",
+    "service": "payment-api",
+    "severity": "CRITICAL",
+    "title": "Stripe API Egress Latency and HTTP Connection Pool Starvation",
+    "description": "Third-party payment gateway stripe connection pool starvation causing HTTP 504 on checkout with socket connect timeout",
+    "symptoms": [
+      "egress socket connect timeout > 25s",
+      "HTTP 504 gateway timeout",
+      "thread pool exhaustion on worker pods"
+    ],
+    "expected_family": "INC-104",
+    "expected_verdict": "ACCEPTED",
+    "expected_match_strength": "High",
+    "expected_runbook": "RB-PAYMENT-CIRCUIT-SHED"
+  },
+  {
+    "case_id": "HELD-OUT-PARA-002",
+    "category": "paraphrased_variant",
+    "service": "order-db-primary",
+    "severity": "CRITICAL",
+    "title": "PostgreSQL Row-Level Deadlock 40P01 on Inventory Items",
+    "description": "Concurrent marketplace orders triggered transaction deadlock SQLSTATE 40P01 on inventory_items and order_ledger",
+    "symptoms": [
+      "SQLSTATE 40P01 deadlock detected",
+      "active lock wait queue saturated",
+      "transaction rollback rate spike"
+    ],
+    "expected_family": "INC-108",
+    "expected_verdict": "ACCEPTED",
+    "expected_match_strength": "High",
+    "expected_runbook": "RB-PG-KILL-LOCKS-ORDER-SORT"
+  },
+  {
+    "case_id": "HELD-OUT-PARA-003",
+    "category": "paraphrased_variant",
+    "service": "auth-cache-service",
+    "severity": "HIGH",
+    "title": "Redis maxmemory Quota Exceeded Under noeviction Policy",
+    "description": "Redis instance reached 100% maxmemory ceiling with noeviction policy, volatile-lru not configured, JWT cache OOM",
+    "symptoms": [
+      "maxmemory ceiling breached",
+      "noeviction command failure on SETEX",
+      "JWT token validation latency spike"
+    ],
+    "expected_family": "INC-203",
+    "expected_verdict": "ACCEPTED",
+    "expected_match_strength": "High",
+    "expected_runbook": "RB-REDIS-EVICTION-TUNE-SCALE"
+  },
+  {
+    "case_id": "HELD-OUT-PARA-004",
+    "category": "paraphrased_variant",
+    "service": "event-queue-worker",
+    "severity": "HIGH",
+    "title": "Corrupt Avro Record Poison Pill Stalling Kafka Consumer Partition",
+    "description": "Kafka consumer partition 4 stalled by RecordDeserializationException on corrupt avro byte stream missing magic byte, requiring DLQ",
+    "symptoms": [
+      "RecordDeserializationException on partition 4",
+      "Kafka consumer group lag surge",
+      "missing avro magic byte",
+      "dead letter queue diversion required"
+    ],
+    "expected_family": "INC-305",
+    "expected_verdict": "ACCEPTED",
+    "expected_match_strength": "High",
+    "expected_runbook": "RB-KAFKA-SKIP-OFFSET-TO-DLQ"
+  },
+  {
+    "case_id": "HELD-OUT-PARA-005",
+    "category": "paraphrased_variant",
+    "service": "checkout-service",
+    "severity": "CRITICAL",
+    "title": "Redis Connection Pool Wait Queue Saturation and 503 Outage",
+    "description": "Checkout microservice connection pool exhausted with redis_pool_wait_duration_seconds > 3s and RedisConnectionClosedException",
+    "symptoms": [
+      "redis_pool_wait_duration_seconds breached threshold",
+      "RedisConnectionClosedException logged",
+      "HTTP 503 Service Unavailable"
+    ],
+    "expected_family": "INC-402",
+    "expected_verdict": "ACCEPTED",
+    "expected_match_strength": "High",
+    "expected_runbook": "RB-REDIS-FAILOVER"
+  },
+  {
+    "case_id": "HELD-OUT-DECOY-001",
+    "category": "decoy",
+    "service": "payment-api",
+    "severity": "CRITICAL",
+    "title": "TLS Certificate Expired Handshake Failure on Ingress Port 8443",
+    "description": "payment-api TLS handshake failed due to expired x509 certificate on port 8443 with SSLHandshakeException",
+    "symptoms": [
+      "SSLHandshakeException on inbound mTLS",
+      "x509 certificate expired",
+      "port 8443 handshake error"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_DIFFERENT_FAILURE_MODE",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-DECOY-002",
+    "category": "decoy",
+    "service": "order-db-primary",
+    "severity": "CRITICAL",
+    "title": "PostgreSQL pg_wal Archiver Device Out of Space",
+    "description": "Database pg_wal disk partition 100% full, xlog archiver stalled with no space left on device",
+    "symptoms": [
+      "pg_wal filesystem full",
+      "xlog archiver error",
+      "disk full no space left on device"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_DIFFERENT_FAILURE_MODE",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-DECOY-003",
+    "category": "decoy",
+    "service": "auth-cache-service",
+    "severity": "HIGH",
+    "title": "Redis Sentinel Master Epoch Split-Brain and Quorum Loss",
+    "description": "Sentinel cluster lost quorum during network partition, master epoch election failure with NoReachableMasterException",
+    "symptoms": [
+      "NoReachableMasterException logged",
+      "Sentinel quorum lost",
+      "split-brain condition detected"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_DIFFERENT_FAILURE_MODE",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-DECOY-004",
+    "category": "decoy",
+    "service": "event-queue-worker",
+    "severity": "HIGH",
+    "title": "Kafka Broker mTLS SASL_SSL Handshake Failure on Port 9093",
+    "description": "Worker unable to authenticate to Kafka broker on port 9093 due to invalid truststore certificate in SASL_SSL handshake",
+    "symptoms": [
+      "SASL_SSL transport failure",
+      "mTLS truststore certificate unknown",
+      "SSL handshake failed on port 9093"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_DIFFERENT_FAILURE_MODE",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-DECOY-005",
+    "category": "decoy",
+    "service": "checkout-service",
+    "severity": "CRITICAL",
+    "title": "Catastrophic ReDoS Regex Backtracking on Promotional Coupon Validation",
+    "description": "Checkout service CPU saturated at 100% due to catastrophic regex backtracking in coupon validation pattern matcher",
+    "symptoms": [
+      "CPU pinned at 100% across all worker threads",
+      "ReDoS exponential backtracking on coupon regex",
+      "pattern matcher thread freeze"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_DIFFERENT_FAILURE_MODE",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-NOVEL-001",
+    "category": "novel",
+    "service": "inventory-sync-service",
+    "severity": "HIGH",
+    "title": "Elasticsearch Bulk Index Rejection Queue Saturation HTTP 429",
+    "description": "Search cluster data nodes rejected bulk indexing requests with 429 Too Many Requests due to thread pool saturation",
+    "symptoms": [
+      "HTTP 429 Too Many Requests on bulk index",
+      "Elasticsearch write queue full",
+      "inventory sync lag 45m"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_NO_ALIGNMENT",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-NOVEL-002",
+    "category": "novel",
+    "service": "notification-dispatcher",
+    "severity": "MEDIUM",
+    "title": "APNs HTTP/2 Gateway Connection Reset and Channel Drop",
+    "description": "Apple Push Notification service provider connection dropped with GOAWAY frame and socket reset",
+    "symptoms": [
+      "APNs HTTP/2 connection reset",
+      "GOAWAY frame received from gateway.push.apple.com",
+      "push notification queue backed up"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_NO_ALIGNMENT",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-NOVEL-003",
+    "category": "novel",
+    "service": "shipping-rate-calculator",
+    "severity": "MEDIUM",
+    "title": "Carrier SOAP XML Schema Validation Fault on International Postal Code",
+    "description": "Carrier rating integration threw SchemaValidationFault parsing postal code format for international consignments",
+    "symptoms": [
+      "SOAP-ENV:Client SchemaValidationFault",
+      "XML unmarshalling error on postal code",
+      "checkout shipping rate calculation failure"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_NO_ALIGNMENT",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-NOVEL-004",
+    "category": "novel",
+    "service": "search-indexer-daemon",
+    "severity": "HIGH",
+    "title": "Lucene Index Segment LockObtainFailedException on NFS Storage",
+    "description": "Lucene background merge worker threw LockObtainFailedException due to stale lockfile on shared NFS mount",
+    "symptoms": [
+      "LockObtainFailedException: Lock held by another process",
+      "Lucene index commit stalled",
+      "NFS lock lease expired"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_NO_ALIGNMENT",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-UNVERIFIED-001",
+    "category": "unverified_memory",
+    "service": "billing-worker",
+    "severity": "HIGH",
+    "title": "Invoice Batch Reconciliation Out of Memory Heap Crash",
+    "description": "Billing worker heap memory exhausted during monthly invoice reconciliation run, matching unverified draft postmortem",
+    "symptoms": [
+      "OutOfMemoryError Java heap space",
+      "billing batch reconciliation aborted",
+      "invoice ledger lock released"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_UNVERIFIED_DRAFT_MEMORY",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  },
+  {
+    "case_id": "HELD-OUT-UNVERIFIED-002",
+    "category": "unverified_memory",
+    "service": "analytics-pipeline",
+    "severity": "HIGH",
+    "title": "Clickstream Aggregation Worker Buffer Overflow and Disk Spill",
+    "description": "Real-time stream aggregation worker spilled uncommitted window buffers to disk causing IO latency spike",
+    "symptoms": [
+      "disk spill threshold exceeded on worker nodes",
+      "window aggregation latency > 180s",
+      "Kafka consumer group backpressure"
+    ],
+    "expected_family": null,
+    "expected_verdict": "REJECTED_UNVERIFIED_DRAFT_MEMORY",
+    "expected_match_strength": "None",
+    "expected_runbook": null
+  }
+]

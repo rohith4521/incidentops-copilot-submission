@@ -1,0 +1,7 @@
+import React from 'react';
+
+export const StitchFooter: React.FC = () => {
+  return (
+    <footer className="fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-1px_8px_rgba(0,0,0,0.4)] border-t border-white/5"><div className="h-10 w-full px-margin flex items-center justify-between overflow-x-auto whitespace-nowrap gap-space-lg text-on-surface-variant font-label-sm text-label-sm"><div className="flex items-center gap-space-md"><span className="text-tertiary flex items-center gap-1 font-bold"><span className="w-1.5 h-1.5 bg-tertiary rounded-full"></span>TELEMETRY CORE: ONLINE</span><span className="text-outline">|</span><span>RK4 INTEGRATOR: <span className="text-on-surface">Δt=0.002ms (DAMPING: 0.984)</span></span><span className="text-outline">|</span><span>1536-D EMBEDDINGS: <span className="text-secondary">4,819,204 VECTORS</span></span><span className="text-outline">|</span><span>COSINE SIMILARITY DRIFT: <span className="text-tertiary">+0.0014%</span></span></div><div className="flex items-center gap-space-md"><span className="text-on-surface-variant">ACTIVE INCIDENTS: <span className="text-primary font-bold">1 SEV-1</span> / <span className="text-on-surface">3 SEV-3</span></span><span className="text-outline">|</span><span>HASH: <span className="text-on-surface font-mono">a9f8..33e1</span></span><span className="text-tertiary">[SECURE PROTOCOL ENGAGED]</span></div></div></footer>
+  );
+};

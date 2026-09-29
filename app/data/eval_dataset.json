@@ -1,0 +1,362 @@
+[
+  {
+    "case_id": "eval-inc104-v1",
+    "incident_family": "INC-104",
+    "variant_type": "paraphrased_variant",
+    "service": "payment-api",
+    "title": "Stripe Gateway Egress Latency & Worker Thread Exhaustion",
+    "severity": "CRITICAL",
+    "description": "Outbound HTTPS requests to Stripe API exceeding 35s latency budget with thread pool saturation.",
+    "symptoms": [
+      "Outbound HTTPS calls to Stripe payment gateway exceeding 35s latency budget",
+      "Tomcat worker thread pool 100% busy across all payment-api replicas",
+      "Cascading 504 Gateway Timeout responses on checkout charge route",
+      "Payment retry surge compounding outbound connection wait queue"
+    ],
+    "expected_historical_family": "INC-104",
+    "expected_runbook": "RB-PAYMENT-CIRCUIT-SHED",
+    "ground_truth_note": "Paraphrased variant of INC-104 with alternate symptom wording."
+  },
+  {
+    "case_id": "eval-inc104-v2",
+    "incident_family": "INC-104",
+    "variant_type": "paraphrased_variant",
+    "service": "payment-api",
+    "title": "Payment Processor Downstream Hang & Connection Pool Saturation",
+    "severity": "CRITICAL",
+    "description": "Third-party payment gateway HTTP socket timeout threshold breached causing zero idle execution threads.",
+    "symptoms": [
+      "Third-party payment gateway HTTP socket timeout threshold breached (>30000ms)",
+      "Zero idle execution threads remaining in payment service pool",
+      "Ingress reverse proxy recording flood of 504 Gateway Timeouts",
+      "Aggressive client checkout retry loop saturating pending request backlog"
+    ],
+    "expected_historical_family": "INC-104",
+    "expected_runbook": "RB-PAYMENT-CIRCUIT-SHED",
+    "ground_truth_note": "Second paraphrased variant of INC-104 emphasizing socket connect timeouts."
+  },
+  {
+    "case_id": "eval-inc104-decoy",
+    "incident_family": "INC-104",
+    "variant_type": "decoy",
+    "service": "payment-api",
+    "title": "Inbound Ingress SSL Certificate Expired on Listener",
+    "severity": "CRITICAL",
+    "description": "Edge ingress listener SSL certificate expired on port 8443 rejecting inbound handshakes.",
+    "symptoms": [
+      "X509CertificateExpiredException on inbound HTTPS listener",
+      "TLS handshake rejection rate reaching 100% on port 8443",
+      "Ingress envoy reporting local SSL verification terminated",
+      "All incoming checkout traffic dropped at edge before application layer"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Decoy alert on payment-api involving edge TLS expiration, not Stripe timeout or thread pool saturation."
+  },
+  {
+    "case_id": "eval-inc108-v1",
+    "incident_family": "INC-108",
+    "variant_type": "paraphrased_variant",
+    "service": "order-db-primary",
+    "title": "PostgreSQL Deadlock Cascade & Lock Contention on Inventory Rows",
+    "severity": "CRITICAL",
+    "description": "Concurrent checkout and marketplace reconciliation transactions deadlocking on inventory records.",
+    "symptoms": [
+      "SQLSTATE 40P01 detected across concurrent order reservation transactions",
+      "Lock wait queue depth climbing past 190 active connections",
+      "Transaction rollback rate surging above normal baseline",
+      "Postgres engine CPU pegged at 97% under lock manager strain"
+    ],
+    "expected_historical_family": "INC-108",
+    "expected_runbook": "RB-PG-KILL-LOCKS-ORDER-SORT",
+    "ground_truth_note": "Paraphrased variant of INC-108 describing row-level locking deadlocks."
+  },
+  {
+    "case_id": "eval-inc108-v2",
+    "incident_family": "INC-108",
+    "variant_type": "paraphrased_variant",
+    "service": "order-db-primary",
+    "title": "Database Row-Lock Deadlock Storm & Transaction Aborts",
+    "severity": "CRITICAL",
+    "description": "High volume of transaction aborts caused by cyclic ExclusiveLock wait graphs on order and ledger tables.",
+    "symptoms": [
+      "Concurrent inventory ledger updates experiencing cyclic deadlock exceptions",
+      "Blocked backend processes waiting on ExclusiveLock exceeding threshold",
+      "Severe rollback rate spike impacting order placement workflows",
+      "Database server CPU saturation near 99% with thread lock waits"
+    ],
+    "expected_historical_family": "INC-108",
+    "expected_runbook": "RB-PG-KILL-LOCKS-ORDER-SORT",
+    "ground_truth_note": "Second paraphrased variant of INC-108 focusing on rollback rates and lock graphs."
+  },
+  {
+    "case_id": "eval-inc108-decoy",
+    "incident_family": "INC-108",
+    "variant_type": "decoy",
+    "service": "order-db-primary",
+    "title": "Postgres Disk Space Critical & WAL Archiver Disk Full",
+    "severity": "CRITICAL",
+    "description": "PostgreSQL WAL archive directory reached 99.8% disk utilization causing disk full write stalls.",
+    "symptoms": [
+      "PANIC: could not write to file pg_wal/xlog: No space left on device",
+      "Disk utilization on /var/lib/postgresql/data at 99.8%",
+      "Database entered read-only recovery mode rejecting all transactions",
+      "S3 WAL archiving agent failing due to network partition"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Decoy alert on order-db-primary involving disk storage exhaustion, not transaction deadlocks."
+  },
+  {
+    "case_id": "eval-inc203-v1",
+    "incident_family": "INC-203",
+    "variant_type": "paraphrased_variant",
+    "service": "auth-cache-service",
+    "title": "Redis Maxmemory Limit Reached & Token Cache Latency Spike",
+    "severity": "HIGH",
+    "description": "Auth token cache running out of memory due to unexpired revocation blacklist keys and noeviction policy.",
+    "symptoms": [
+      "Redis node memory at 100% maxmemory ceiling throwing OOM command rejected errors",
+      "Token verification latency degradation reaching 1150ms",
+      "Downstream microservices failing JWT public key validation with 500 status",
+      "Auth service local fallback cache overflowing leading to crash loops"
+    ],
+    "expected_historical_family": "INC-203",
+    "expected_runbook": "RB-REDIS-EVICTION-TUNE-SCALE",
+    "ground_truth_note": "Paraphrased variant of INC-203 with alternate phrasing for Redis memory exhaustion."
+  },
+  {
+    "case_id": "eval-inc203-v2",
+    "incident_family": "INC-203",
+    "variant_type": "paraphrased_variant",
+    "service": "auth-cache-service",
+    "title": "Auth Cache OOM Failure & JWT Verification Latency Degradation",
+    "severity": "HIGH",
+    "description": "Redis cluster rejects SET commands with OOM error while JWT verification p99 latency spikes.",
+    "symptoms": [
+      "Maxmemory quota saturated with command OOM errors in Redis logs",
+      "Token validation p99 latency spiking above 1.2s",
+      "HTTP 500 error wave across downstream consumers querying JWT keys",
+      "Memory exhaustion causing auth-api pod restarts"
+    ],
+    "expected_historical_family": "INC-203",
+    "expected_runbook": "RB-REDIS-EVICTION-TUNE-SCALE",
+    "ground_truth_note": "Second paraphrased variant of INC-203 focusing on token validation degradation."
+  },
+  {
+    "case_id": "eval-inc203-decoy",
+    "incident_family": "INC-203",
+    "variant_type": "decoy",
+    "service": "auth-cache-service",
+    "title": "Redis Sentinel Quorum Loss & Split Brain Network Partition",
+    "severity": "HIGH",
+    "description": "Inter-datacenter network partition preventing Redis Sentinel quorum consensus on master leadership.",
+    "symptoms": [
+      "Sentinel cluster lost quorum across availability zone us-east-1b",
+      "Multiple nodes advertising conflicting master epochs",
+      "Read-only replica failover aborted due to missing quorum votes",
+      "Client driver logging NoReachableMasterException"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Decoy alert on auth-cache-service involving Sentinel consensus partition, not noeviction OOM."
+  },
+  {
+    "case_id": "eval-inc305-v1",
+    "incident_family": "INC-305",
+    "variant_type": "paraphrased_variant",
+    "service": "event-queue-worker",
+    "title": "Kafka Partition 4 Consumer Stall & Serialization Failure",
+    "severity": "HIGH",
+    "description": "Malformed Avro records missing magic byte causing consumer worker thread crashes and lag buildup.",
+    "symptoms": [
+      "Consumer lag accumulating over 500k uncommitted messages on partition 4",
+      "Worker service throwing continuous RecordDeserializationException errors",
+      "Persistent 60-second consumer group rebalance loops",
+      "Fulfillment event consumption completely halted"
+    ],
+    "expected_historical_family": "INC-305",
+    "expected_runbook": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+    "ground_truth_note": "Paraphrased variant of INC-305 covering partition lag and deserialization exception."
+  },
+  {
+    "case_id": "eval-inc305-v2",
+    "incident_family": "INC-305",
+    "variant_type": "paraphrased_variant",
+    "service": "event-queue-worker",
+    "title": "Event Pipeline Offset Trap & Poison Record Deserialization",
+    "severity": "HIGH",
+    "description": "Unskippable poison pill payload blocking consumer group from advancing offsets on partition 4.",
+    "symptoms": [
+      "Partition lag rapidly escalating past 480000 records on worker group",
+      "Worker process encountering fatal Avro deserialization errors repeatedly",
+      "Constant consumer group rebalancing preventing partition progression",
+      "Downstream order processing queue stalled at poison offset"
+    ],
+    "expected_historical_family": "INC-305",
+    "expected_runbook": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+    "ground_truth_note": "Second paraphrased variant of INC-305 focusing on consumer offset trap."
+  },
+  {
+    "case_id": "eval-inc305-decoy",
+    "incident_family": "INC-305",
+    "variant_type": "decoy",
+    "service": "event-queue-worker",
+    "title": "Kafka TLS Broker Certificate Renewal Handshake Failure",
+    "severity": "HIGH",
+    "description": "Internal mTLS authentication failure between worker pods and Kafka broker cluster.",
+    "symptoms": [
+      "SSLHandshakeException: Received fatal alert: certificate_unknown",
+      "Worker unable to authenticate to Kafka broker port 9093",
+      "All consumer instances disconnected during SASL/SSL handshake",
+      "Kafka client SSL truststore validation failed on broker cert"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Decoy alert on event-queue-worker involving mTLS truststore, not Avro poison pill."
+  },
+  {
+    "case_id": "eval-inc402-v1",
+    "incident_family": "INC-402",
+    "variant_type": "paraphrased_variant",
+    "service": "checkout-service",
+    "title": "Checkout Redis Connection Pool Depletion & 503 Surge",
+    "severity": "CRITICAL",
+    "description": "Flash sale traffic spike exhausting checkout Redis client pool, causing thread blocks and 503 errors.",
+    "symptoms": [
+      "p99 checkout response time degraded to 4300ms",
+      "RedisConnectionClosedException logged during connection lease",
+      "redis_pool_wait_duration_seconds exceeding 2800ms",
+      "Elevated HTTP 503 Service Unavailable error rate"
+    ],
+    "expected_historical_family": "INC-402",
+    "expected_runbook": "RB-REDIS-FAILOVER",
+    "ground_truth_note": "Paraphrased variant of INC-402 covering pool wait time and 503 responses."
+  },
+  {
+    "case_id": "eval-inc402-v2",
+    "incident_family": "INC-402",
+    "variant_type": "paraphrased_variant",
+    "service": "checkout-service",
+    "title": "Redis Client Pool Exhaustion During Traffic Surge",
+    "severity": "CRITICAL",
+    "description": "Idle connection leaks without keep-alive timeouts leading to connection pool exhaustion during flash campaign.",
+    "symptoms": [
+      "Checkout transaction latency p99 spiking over 4.0s",
+      "Connection lease acquisition failures with RedisConnectionClosedException",
+      "Connection pool wait time metric climbing past 2.6 seconds",
+      "Cascading 503 errors returned to mobile and web checkout clients"
+    ],
+    "expected_historical_family": "INC-402",
+    "expected_runbook": "RB-REDIS-FAILOVER",
+    "ground_truth_note": "Second paraphrased variant of INC-402 emphasizing idle connection leaks."
+  },
+  {
+    "case_id": "eval-inc402-decoy",
+    "incident_family": "INC-402",
+    "variant_type": "decoy",
+    "service": "checkout-service",
+    "title": "Checkout Cart Regex ReDoS Vulnerability CPU Spike",
+    "severity": "CRITICAL",
+    "description": "Malicious payload triggering catastrophic regex backtracking on discount coupon parser.",
+    "symptoms": [
+      "Single-threaded CPU usage pegged at 100% on coupon validation routine",
+      "Regex engine stuck in exponential backtracking loop",
+      "Worker thread hanging indefinitely inside java.util.regex.Pattern",
+      "Memory normal but event loop completely blocked by coupon parsing"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Decoy alert on checkout-service involving ReDoS CPU peg, not Redis pool starvation."
+  },
+  {
+    "case_id": "eval-novel-1",
+    "incident_family": null,
+    "variant_type": "novel",
+    "service": "search-indexing-worker",
+    "title": "Elasticsearch Cluster Yellow & Split-Brain Shard State",
+    "severity": "HIGH",
+    "description": "Elasticsearch cluster entered yellow state with primary shards unassigned after data node dropped.",
+    "symptoms": [
+      "Primary shard unassigned for index products_v3",
+      "Node search-data-02 dropped from master node cluster state",
+      "Cluster health yellow with 12 unassigned replica shards",
+      "Search indexing throughput degraded by 85%"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Novel incident: Elasticsearch cluster shard unassigned issue on unindexed service."
+  },
+  {
+    "case_id": "eval-novel-2",
+    "incident_family": null,
+    "variant_type": "novel",
+    "service": "analytics-pipeline",
+    "title": "ClickHouse Mutation Merge Tree Stall & Part Count Breach",
+    "severity": "HIGH",
+    "description": "ClickHouse table partition mutation stuck with part count exceeding max_parts_in_total limit.",
+    "symptoms": [
+      "Too many parts in all data parts in table events_daily (3420 > 3000)",
+      "Background merge pool saturated and unable to merge small parts",
+      "Incoming analytics batch inserts rejected with HTTP 500",
+      "Mutation kill commands timing out due to lock on part metadata"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Novel incident: ClickHouse part count mutation stall on unindexed service."
+  },
+  {
+    "case_id": "eval-novel-3",
+    "incident_family": null,
+    "variant_type": "novel",
+    "service": "notification-dispatcher",
+    "title": "SendGrid Mail API Rate Limit Exceeded & Backoff Spikes",
+    "severity": "HIGH",
+    "description": "SendGrid outbound email API returned HTTP 429 Too Many Requests under marketing campaign surge.",
+    "symptoms": [
+      "Outbound email API returning HTTP 429 Too Many Requests",
+      "Rate limit headers indicate 0 credits remaining in current minute window",
+      "Notification queue backpressure overflowing to Dead Letter Queue",
+      "SMS and push notification fallbacks saturating secondary gateways"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Novel incident: Third-party email API rate limit backpressure on unindexed service."
+  },
+  {
+    "case_id": "eval-novel-4",
+    "incident_family": null,
+    "variant_type": "novel",
+    "service": "secrets-manager",
+    "title": "HashiCorp Vault Token Lease Revocation Loop & Raft Stall",
+    "severity": "CRITICAL",
+    "description": "Vault Raft storage backend experiencing write stalls during massive token lease expiration cycle.",
+    "symptoms": [
+      "Vault sys/leases/lookup latency spiked to 8500ms",
+      "Raft consensus commit duration exceeded 3.5s SLA",
+      "Downstream microservices failing to acquire database dynamic credentials",
+      "Vault active node stepping down due to raft heartbeat timeout"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Novel incident: Vault lease revocation raft stall on unindexed service."
+  },
+  {
+    "case_id": "eval-novel-5",
+    "incident_family": null,
+    "variant_type": "novel",
+    "service": "cdn-edge-gateway",
+    "title": "Cloudflare Edge Worker Subrequest Quota Exhaustion",
+    "severity": "HIGH",
+    "description": "Edge worker exceeded the 50 subrequests per request limit on dynamic personalization rule.",
+    "symptoms": [
+      "Worker subrequest quota exceeded (50 subrequests per invocation)",
+      "Edge returning HTTP 1101 Worker Threw Exception to end users",
+      "Origin shielding cache bypassed causing 300% traffic surge on origin",
+      "Personalized geo-pricing feature failing across EU regions"
+    ],
+    "expected_historical_family": null,
+    "expected_runbook": null,
+    "ground_truth_note": "Novel incident: Cloudflare edge worker subrequest quota breach on unindexed service."
+  }
+]

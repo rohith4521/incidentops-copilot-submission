@@ -1,0 +1,177 @@
+[
+  {
+    "incident_id": "INC-104",
+    "service": "payment-api",
+    "severity": "CRITICAL",
+    "alert_signature": "PaymentGatewayEgressTimeoutBreached",
+    "title": "Payment API Gateway Timeout & Cascading Thread Pool Starvation",
+    "symptoms": [
+      "Outbound HTTPS timeout > 30s calling Stripe payment gateway API",
+      "Egress HTTP thread pool saturation across 8 replicas",
+      "Cascading HTTP 504 Gateway Timeout on /api/v2/checkout/charge",
+      "Surge in client payment retries compounding gateway connection queue"
+    ],
+    "root_cause": "Upstream third-party payment processor experienced routing degradation on edge proxies. The payment-api HTTP client lacked aggressive socket connect timeouts (defaulted to 60s) and lacked an active circuit breaker, allowing thousands of concurrent charge requests to block worker threads, starving the application server of thread capacity.",
+    "failed_mitigations": [
+      "Restarting payment-api pods alone caused immediate re-saturation as client retry storms hit pods during initialization.",
+      "Increasing payment-api replica count from 8 to 24 aggravated upstream firewall connection limits."
+    ],
+    "verified_runbook": "RB-PAYMENT-CIRCUIT-SHED",
+    "postmortem_summary": "Cascading payment-api outage caused by upstream gateway latency and missing circuit breaker. Resolved by applying RB-PAYMENT-CIRCUIT-SHED to trip the circuit breaker, route traffic to asynchronous payment queue, and adjust HTTP client connect timeout to 3.5s.",
+    "resolution": "Applied RB-PAYMENT-CIRCUIT-SHED: tripped circuit breaker to shed load, redirected payments to durable async intake buffer, and patched socket timeout to 3.5s.",
+    "runbook_executed": "RB-PAYMENT-CIRCUIT-SHED",
+    "timeline": [
+      { "time": "08:14 UTC", "event": "Prometheus alert fired: PaymentGatewayEgressTimeoutBreached on payment-api" },
+      { "time": "08:18 UTC", "event": "Active HTTP threads hit max 200 per replica; 504 errors reported by ingress" },
+      { "time": "08:21 UTC", "event": "SRE executed RB-PAYMENT-CIRCUIT-SHED to isolate third-party dependency" },
+      { "time": "08:26 UTC", "event": "Thread count normalized to 24; checkout conversion restored via async flow" }
+    ],
+    "tags": ["payment-api", "api-failure", "payment", "egress-timeout", "circuit-breaker", "RB-PAYMENT-CIRCUIT-SHED", "INC-104"]
+  },
+  {
+    "incident_id": "INC-108",
+    "service": "order-db-primary",
+    "severity": "CRITICAL",
+    "alert_signature": "PostgresDeadlockRateSpikeAndLockQueueSaturation",
+    "title": "Primary Database Deadlock Storm & Transaction Isolation Contention",
+    "symptoms": [
+      "PostgreSQL active lock wait queue exceeded 180 connections",
+      "SQLSTATE 40P01 (deadlock detected) on concurrent inventory row updates",
+      "Spike in backend transactions rolling back with transaction abortion",
+      "Database CPU pinned at 98% with connection pool starvation"
+    ],
+    "root_cause": "Two concurrent transactional workflows (direct flash checkout vs batched marketplace reconciliation) acquired row-level ExclusiveLocks on inventory_items and order_ledger in opposing alphabetical order, producing mutual cyclic lock wait graphs under high concurrency.",
+    "failed_mitigations": [
+      "Increasing PostgreSQL max_connections from 300 to 800 exacerbated lock manager spinlock contention and CPU usage.",
+      "Executing manual VACUUM ANALYZE failed to release active transactional locks."
+    ],
+    "verified_runbook": "RB-PG-KILL-LOCKS-ORDER-SORT",
+    "postmortem_summary": "Severe PostgreSQL transaction deadlock and lock contention on inventory updates. Resolved by executing RB-PG-KILL-LOCKS-ORDER-SORT to cancel blocking backend PIDs in pg_stat_activity and deploying deterministic ascending primary key lock acquisition.",
+    "resolution": "Applied RB-PG-KILL-LOCKS-ORDER-SORT: cancelled cyclic blocker PIDs in pg_stat_activity, and enforced deterministic sort order on inventory row locks in application repository.",
+    "runbook_executed": "RB-PG-KILL-LOCKS-ORDER-SORT",
+    "timeline": [
+      { "time": "12:02 UTC", "event": "Alert: PostgresDeadlockRateSpikeAndLockQueueSaturation fired (> 25 deadlocks/sec)" },
+      { "time": "12:05 UTC", "event": "Identified cyclic wait between inventory_items update and order_reservations lock" },
+      { "time": "12:09 UTC", "event": "Approved and executed RB-PG-KILL-LOCKS-ORDER-SORT" },
+      { "time": "12:15 UTC", "event": "Blocking locks purged; CPU dropped from 98% to 26%; transactions stabilized" }
+    ],
+    "tags": ["order-db-primary", "database", "postgres", "deadlock", "locks", "RB-PG-KILL-LOCKS-ORDER-SORT", "INC-108"]
+  },
+  {
+    "incident_id": "INC-203",
+    "service": "auth-cache-service",
+    "severity": "HIGH",
+    "alert_signature": "RedisEvictionPolicyFailureAndJWTCacheOOM",
+    "title": "Auth Cache Memory Exhaustion & JWT Validation Latency Surge",
+    "symptoms": [
+      "Redis memory usage reached 100% maxmemory ceiling with OOM command errors",
+      "Auth token verification latency spiked from 4ms to 1,200ms",
+      "Downstream services receiving HTTP 500 on JWT public key cache lookup",
+      "Pod crashloops on auth-api due to saturated in-memory fallback cache"
+    ],
+    "root_cause": "Redis cluster key eviction policy was configured to noeviction instead of volatile-lru, while a recent deployment omitted TTL parameters on refresh token revocation blacklist keys, causing memory saturation.",
+    "failed_mitigations": [
+      "Flushing entire cache with FLUSHDB caused a catastrophic cache stampede on MySQL user authentication table.",
+      "Restarting individual Redis cluster nodes failed as persistence RDB reload immediately hit memory limits."
+    ],
+    "verified_runbook": "RB-REDIS-EVICTION-TUNE-SCALE",
+    "postmortem_summary": "Auth cache failure caused by noeviction policy and untruncated revocation keys. Resolved via RB-REDIS-EVICTION-TUNE-SCALE by switching eviction policy to volatile-lru, purging expired keys with SCAN, and doubling cluster memory quota.",
+    "resolution": "Executed RB-REDIS-EVICTION-TUNE-SCALE: dynamically updated CONFIG SET maxmemory-policy volatile-lru, scaled cluster memory by 2x, and deployed hotfix with 24h key TTL.",
+    "runbook_executed": "RB-REDIS-EVICTION-TUNE-SCALE",
+    "timeline": [
+      { "time": "16:20 UTC", "event": "Alert: RedisEvictionPolicyFailureAndJWTCacheOOM triggered" },
+      { "time": "16:24 UTC", "event": "Redis node 0 OOM errors logged on SETEX commands" },
+      { "time": "16:28 UTC", "event": "Runbook RB-REDIS-EVICTION-TUNE-SCALE approved and executed" },
+      { "time": "16:35 UTC", "event": "Redis memory stabilized at 62%; token validation latency returned to < 5ms" }
+    ],
+    "tags": ["auth-cache-service", "authentication", "cache", "redis", "oom", "RB-REDIS-EVICTION-TUNE-SCALE", "INC-203"]
+  },
+  {
+    "incident_id": "INC-305",
+    "service": "event-queue-worker",
+    "severity": "HIGH",
+    "alert_signature": "KafkaConsumerGroupLagSurgeAndPoisonPill",
+    "title": "Kafka Worker Deserialization Poison Pill & Partition Stall",
+    "symptoms": [
+      "Kafka consumer group lag on partition 4 surged from 20 to 520,000 messages",
+      "Worker threads encountering repeated RecordDeserializationException",
+      "Consumer group rebalance storms occurring every 60 seconds",
+      "Downstream order fulfillment event pipeline completely stalled"
+    ],
+    "root_cause": "An upstream publisher emitted corrupt Avro byte payloads missing magic byte 0x00. The consumer worker lacked a Dead Letter Queue (DLQ) and failed to advance consumer offsets on deserialization errors, trapping workers in an infinite retry loop.",
+    "failed_mitigations": [
+      "Increasing consumer thread concurrency caused all worker threads to encounter the same poison pill record simultaneously.",
+      "Killing worker pods caused persistent Kafka rebalance storm without advancing the poison offset."
+    ],
+    "verified_runbook": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+    "postmortem_summary": "Kafka worker pipeline stalled by corrupt Avro poison pill on partition 4. Resolved via RB-KAFKA-SKIP-OFFSET-TO-DLQ by seeking consumer offset past poison pill record, redirecting bad payload to Dead Letter Queue, and resuming processing.",
+    "resolution": "Executed RB-KAFKA-SKIP-OFFSET-TO-DLQ: shifted partition 4 offset by +1, extracted poison payload to S3 dead-letter bucket, and configured unhandled error error-handler.",
+    "runbook_executed": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+    "timeline": [
+      { "time": "03:40 UTC", "event": "Alert: KafkaConsumerGroupLagSurgeAndPoisonPill triggered on partition 4" },
+      { "time": "03:45 UTC", "event": "Identified RecordDeserializationException at offset 4192011" },
+      { "time": "03:49 UTC", "event": "Runbook RB-KAFKA-SKIP-OFFSET-TO-DLQ approved and executed" },
+      { "time": "03:54 UTC", "event": "Lag drained at 45,000 msg/sec; consumer group rebalance stabilized" }
+    ],
+    "tags": ["event-queue-worker", "worker", "queue", "kafka", "poison-pill", "lag", "RB-KAFKA-SKIP-OFFSET-TO-DLQ", "INC-305"]
+  },
+  {
+    "incident_id": "INC-402",
+    "service": "checkout-service",
+    "severity": "CRITICAL",
+    "alert_signature": "CheckoutRedisPoolExhaustionHighErrorRate",
+    "title": "Redis Connection Pool Starvation under High Traffic Spike",
+    "symptoms": [
+      "p99 latency spiked to 4100ms",
+      "RedisConnectionClosedException in checkout logs",
+      "redis_pool_wait_duration_seconds > 2.5s",
+      "HTTP 503 Service Unavailable"
+    ],
+    "root_cause": "The checkout-service default Redis client connection pool (max 100 connections) became completely exhausted when concurrency surged 4x during an unscheduled flash sale campaign. Leaked idle connections without keep-alive timeouts caused active threads to block on acquire, resulting in thread starvation and cascading HTTP 503 errors.",
+    "failed_mitigations": [
+      "Pod restarts alone caused connection storms back into Redis master node.",
+      "Increasing pod CPU limits did not relieve connection pool starvation."
+    ],
+    "verified_runbook": "RB-REDIS-FAILOVER",
+    "postmortem_summary": "14% of checkout attempts failed with HTTP 503 Service Unavailable for 18 minutes; p99 latency spiked from 120ms to 4,200ms. Resolved via Sentinel failover and connection pool expansion.",
+    "resolution": "Triggered Sentinel failover to warm read-replica node, performed rolling restart of checkout-service pods with tuned connection pool configuration (max_connections=500, pool_timeout_ms=1500, idle_timeout_sec=30).",
+    "runbook_executed": "RB-REDIS-FAILOVER",
+    "timeline": [
+      { "time": "14:02 UTC", "event": "Prometheus alert triggered: CheckoutServiceHighErrorRate > 10%" },
+      { "time": "14:05 UTC", "event": "On-call SRE identified pool wait queue saturation in redis_pool_wait_duration_seconds" },
+      { "time": "14:08 UTC", "event": "Runbook RB-REDIS-FAILOVER approved and executed" },
+      { "time": "14:14 UTC", "event": "Rolling deployment completed; connection pool wait time normalized to < 2ms" },
+      { "time": "14:20 UTC", "event": "Incident resolved; error rate returned to 0.02%" }
+    ],
+    "tags": ["redis", "checkout-service", "connection-pool", "latency-spike", "failover", "RB-REDIS-FAILOVER", "INC-402"]
+  },
+  {
+    "incident_id": "INC-519",
+    "service": "auth-api",
+    "severity": "CRITICAL",
+    "alert_signature": "AuthApiKubePodCrashLoopingOOMKilled",
+    "title": "Kubernetes OOMKilled CrashLoop from Unbounded JWT Cache Heap Leak",
+    "symptoms": [
+      "Pod restart count >= 4 within 15 minutes",
+      "Container terminated reason: OOMKilled (Exit Code 137)",
+      "Cgroup memory hit 2GiB boundary",
+      "Spike in 502 Bad Gateway on /oauth/token"
+    ],
+    "root_cause": "The auth-api service suffered recurrent OOMKilled termination (exit code 137) due to an unbounded local in-memory Caffeine cache storing decoded JWT claims. Expired tokens were never evicted due to a missing expireAfterWrite TTL, driving JVM heap usage to surpass the 2GiB cgroup memory limit under sustained authentication load.",
+    "failed_mitigations": [
+      "Restarting pods only delayed OOMKilled crashes by ~3 minutes until cache filled again.",
+      "Horizontal Pod Autoscaler scaled out to 16 replicas, each crashlooping in parallel."
+    ],
+    "verified_runbook": "RB-K8S-AUTH-HEAP-EXPAND",
+    "postmortem_summary": "Continuous pod crashloops on auth-api replicas caused by memory leak in JWT cache. Resolved by expanding pod memory limits to 4GiB and adding bounded cache size with TTL.",
+    "resolution": "Temporarily expanded pod container memory limits to 4GiB to halt crashlooping, followed by deploying hotfix commit enabling expireAfterWrite(15, TimeUnit.MINUTES) and maximumSize(100000) on the Caffeine cache builder.",
+    "runbook_executed": "RB-K8S-AUTH-HEAP-EXPAND",
+    "timeline": [
+      { "time": "09:12 UTC", "event": "Alert: KubePodCrashLooping auth-api pods restarted > 3 times in 10m" },
+      { "time": "09:15 UTC", "event": "Inspected pod describe: Last State Terminated Reason: OOMKilled (Exit Code 137)" },
+      { "time": "09:19 UTC", "event": "Runbook RB-K8S-AUTH-HEAP-EXPAND executed to provide immediate headroom" },
+      { "time": "09:25 UTC", "event": "Crashloop ceased; hotfix PR #882 merged and deployed" }
+    ],
+    "tags": ["kubernetes", "auth-api", "oomkilled", "memory-leak", "jvm", "caching", "RB-K8S-AUTH-HEAP-EXPAND", "INC-519"]
+  }
+]

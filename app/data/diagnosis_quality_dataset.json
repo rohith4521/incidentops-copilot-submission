@@ -1,0 +1,581 @@
+[
+  {
+    "scenario_id": "BENCH-KNOWN-001",
+    "category": "known",
+    "service": "payment-api",
+    "severity": "CRITICAL",
+    "title": "Payment API Gateway Egress Timeout & Thread Saturation",
+    "description": "Outbound HTTPS timeouts calling payment processor with thread pool starvation on checkout.",
+    "symptoms": [
+      "Outbound HTTPS timeout > 30s calling Stripe payment gateway API",
+      "Egress HTTP thread pool saturation across 8 replicas",
+      "Cascading HTTP 504 Gateway Timeout on /api/v2/checkout/charge"
+    ],
+    "context": {"environment": "production", "cloud_region": "us-east-1"},
+    "failure_domain": "connection_pool",
+    "expected_root_cause_family": "gateway_timeout_thread_exhaustion",
+    "acceptable_root_cause_aliases": [
+      "gateway timeout",
+      "socket timeout",
+      "egress timeout",
+      "payment gateway timeout",
+      "thread pool saturation",
+      "stripe payment gateway",
+      "upstream third-party payment processor",
+      "missing circuit breaker"
+    ],
+    "expected_runbook_family": "RB-PAYMENT-CIRCUIT-SHED",
+    "acceptable_runbook_aliases": [
+      "RB-PAYMENT-CIRCUIT-SHED",
+      "circuit breaker",
+      "shed load",
+      "payment circuit shed"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-104"
+  },
+  {
+    "scenario_id": "BENCH-KNOWN-002",
+    "category": "known",
+    "service": "order-db-primary",
+    "severity": "CRITICAL",
+    "title": "Primary Database Deadlock Storm & Transaction Contention",
+    "description": "PostgreSQL active lock wait queue exceeded 180 connections with SQLSTATE 40P01 deadlocks on inventory row updates.",
+    "symptoms": [
+      "PostgreSQL active lock wait queue exceeded 180 connections",
+      "SQLSTATE 40P01 deadlock detected on concurrent inventory row updates",
+      "Database CPU pinned at 98% with connection pool starvation"
+    ],
+    "context": {"environment": "production", "db_version": "postgres-15"},
+    "failure_domain": "db_locking",
+    "expected_root_cause_family": "concurrent_transaction_deadlock",
+    "acceptable_root_cause_aliases": [
+      "deadlock",
+      "40p01",
+      "lock contention",
+      "cyclic lock wait",
+      "exclusivelock",
+      "row-level lock contention",
+      "opposing alphabetical order",
+      "transaction isolation contention"
+    ],
+    "expected_runbook_family": "RB-PG-KILL-LOCKS-ORDER-SORT",
+    "acceptable_runbook_aliases": [
+      "RB-PG-KILL-LOCKS-ORDER-SORT",
+      "kill locks",
+      "cancel blocking backend pids",
+      "order sort",
+      "lock sort"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-108"
+  },
+  {
+    "scenario_id": "BENCH-KNOWN-003",
+    "category": "known",
+    "service": "auth-cache-service",
+    "severity": "HIGH",
+    "title": "Auth Cache Memory Exhaustion & JWT Validation Latency Surge",
+    "description": "Redis cluster key eviction policy failure causing maxmemory saturation with noeviction errors.",
+    "symptoms": [
+      "Redis memory usage reached 100% maxmemory ceiling with OOM command errors",
+      "Auth token verification latency spiked from 4ms to 1,200ms",
+      "Downstream services receiving HTTP 500 on JWT cache lookup"
+    ],
+    "context": {"environment": "production", "cache_tier": "l2-redis"},
+    "failure_domain": "cache_memory_eviction",
+    "expected_root_cause_family": "redis_noeviction_unbounded_keys",
+    "acceptable_root_cause_aliases": [
+      "noeviction",
+      "eviction policy",
+      "volatile-lru",
+      "untruncated ttl",
+      "revocation blacklist keys",
+      "maxmemory ceiling",
+      "redis memory exhaustion",
+      "jwt cache oom"
+    ],
+    "expected_runbook_family": "RB-REDIS-EVICTION-TUNE-SCALE",
+    "acceptable_runbook_aliases": [
+      "RB-REDIS-EVICTION-TUNE-SCALE",
+      "eviction tune",
+      "volatile-lru",
+      "redis memory scale",
+      "redis eviction"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-203"
+  },
+  {
+    "scenario_id": "BENCH-KNOWN-004",
+    "category": "known",
+    "service": "event-queue-worker",
+    "severity": "HIGH",
+    "title": "Kafka Worker Deserialization Poison Pill & Partition Stall",
+    "description": "Corrupt byte stream missing magic byte causing RecordDeserializationException loop on partition 4.",
+    "symptoms": [
+      "Kafka consumer group lag on partition 4 surged to 520,000 messages",
+      "Worker threads encountering repeated RecordDeserializationException",
+      "Consumer group rebalance storms occurring every 60 seconds"
+    ],
+    "context": {"environment": "production", "partition": 4},
+    "failure_domain": "messaging_poison_pill",
+    "expected_root_cause_family": "avro_deserialization_poison_pill",
+    "acceptable_root_cause_aliases": [
+      "poison pill",
+      "recorddeserializationexception",
+      "corrupt avro",
+      "missing magic byte",
+      "dead letter queue",
+      "consumer offset stall",
+      "infinite retry loop"
+    ],
+    "expected_runbook_family": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+    "acceptable_runbook_aliases": [
+      "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+      "skip offset",
+      "dead letter queue",
+      "dlq",
+      "kafka skip offset"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-305"
+  },
+  {
+    "scenario_id": "BENCH-PARA-005",
+    "category": "paraphrased",
+    "service": "checkout-service",
+    "severity": "CRITICAL",
+    "title": "Checkout Redis Client Connection Pool Wait Duration Spike",
+    "description": "Flash sale traffic surge causing checkout worker threads to block acquiring idle Redis connections.",
+    "symptoms": [
+      "p99 latency spiked to 4100ms on checkout endpoint",
+      "redis_pool_wait_duration_seconds exceeded 2.5s threshold",
+      "RedisConnectionClosedException logged across checkout workers",
+      "HTTP 503 Service Unavailable errors on order placement"
+    ],
+    "context": {"environment": "production", "traffic_surge": "4x"},
+    "failure_domain": "connection_pool",
+    "expected_root_cause_family": "redis_connection_pool_starvation",
+    "acceptable_root_cause_aliases": [
+      "connection pool exhaustion",
+      "redis connection pool",
+      "idle connection leak",
+      "pool wait duration",
+      "max connections exhausted",
+      "thread starvation",
+      "pool starvation",
+      "sentinel failover"
+    ],
+    "expected_runbook_family": "RB-REDIS-FAILOVER",
+    "acceptable_runbook_aliases": [
+      "RB-REDIS-FAILOVER",
+      "redis failover",
+      "sentinel failover",
+      "pool expansion",
+      "pool tuning"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-402"
+  },
+  {
+    "scenario_id": "BENCH-PARA-006",
+    "category": "paraphrased",
+    "service": "auth-api",
+    "severity": "CRITICAL",
+    "title": "Kubernetes Pod CrashLoopBackOff from Local In-Memory Cache Heap Leak",
+    "description": "JVM heap memory continuously expanding until Linux cgroup memory limit triggers OOMKilled code 137.",
+    "symptoms": [
+      "Pod restart count >= 4 within 15 minutes",
+      "Container terminated reason: OOMKilled (Exit Code 137)",
+      "JVM heap usage breached 2GiB container cgroup memory ceiling",
+      "HTTP 502 Bad Gateway responses on token validation endpoint"
+    ],
+    "context": {"environment": "production", "k8s_namespace": "security"},
+    "failure_domain": "cache_memory_eviction",
+    "expected_root_cause_family": "jvm_heap_cache_memory_leak",
+    "acceptable_root_cause_aliases": [
+      "oomkilled",
+      "exit code 137",
+      "heap leak",
+      "caffeine cache",
+      "unbounded jwt claims cache",
+      "expireafterwrite missing",
+      "cgroup memory limit",
+      "memory leak",
+      "jwt cache leak"
+    ],
+    "expected_runbook_family": "RB-K8S-AUTH-HEAP-EXPAND",
+    "acceptable_runbook_aliases": [
+      "RB-K8S-AUTH-HEAP-EXPAND",
+      "heap expand",
+      "cgroup memory limit expand",
+      "caffeine cache ttl",
+      "auth heap expand"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-519"
+  },
+  {
+    "scenario_id": "BENCH-PARA-007",
+    "category": "paraphrased",
+    "service": "payment-api",
+    "severity": "CRITICAL",
+    "title": "Acquiring Bank Gateway Network Latency and Downstream Backpressure",
+    "description": "Third-party credit card clearinghouse latency spike causing payment server threads to hang waiting for response.",
+    "symptoms": [
+      "Payment settlement latency > 28s on external bank clearinghouse",
+      "HTTP thread pool capacity at 100% across all replicas",
+      "Ingress reporting 504 Gateway Timeout on credit card authorizations",
+      "Client retry waves compounding pending socket connections"
+    ],
+    "context": {"environment": "production", "partner": "visa-clearing"},
+    "failure_domain": "connection_pool",
+    "expected_root_cause_family": "gateway_timeout_thread_exhaustion",
+    "acceptable_root_cause_aliases": [
+      "gateway timeout",
+      "socket connect timeout",
+      "clearinghouse latency",
+      "third-party processor",
+      "missing circuit breaker",
+      "thread pool starvation",
+      "socket timeout",
+      "egress timeout"
+    ],
+    "expected_runbook_family": "RB-PAYMENT-CIRCUIT-SHED",
+    "acceptable_runbook_aliases": [
+      "RB-PAYMENT-CIRCUIT-SHED",
+      "circuit breaker",
+      "shed load",
+      "async payment queue",
+      "payment circuit shed"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-104"
+  },
+  {
+    "scenario_id": "BENCH-PARA-008",
+    "category": "paraphrased",
+    "service": "order-db-primary",
+    "severity": "CRITICAL",
+    "title": "Cross-Transaction Inventory and Ledger Cyclic Lock Graph Contention",
+    "description": "High volume of concurrent cart checkouts and batch updates locking rows in conflicting order.",
+    "symptoms": [
+      "Postgres transaction aborts with SQLSTATE 40P01",
+      "pg_stat_activity shows mutual lock wait cycle on inventory_items",
+      "Backend database connection pool reaching 95% utilization",
+      "Transaction rollback rate spiking to 35 per second"
+    ],
+    "context": {"environment": "production", "db_pool": "hikari"},
+    "failure_domain": "db_locking",
+    "expected_root_cause_family": "concurrent_transaction_deadlock",
+    "acceptable_root_cause_aliases": [
+      "deadlock",
+      "40p01",
+      "cyclic lock graph",
+      "conflicting lock order",
+      "row lock contention",
+      "pg_stat_activity blocking pids",
+      "opposing alphabetical order",
+      "exclusivelock"
+    ],
+    "expected_runbook_family": "RB-PG-KILL-LOCKS-ORDER-SORT",
+    "acceptable_runbook_aliases": [
+      "RB-PG-KILL-LOCKS-ORDER-SORT",
+      "kill locks",
+      "cancel blocking pids",
+      "order sort",
+      "lock sort"
+    ],
+    "has_trusted_precedent": true,
+    "expected_precedent_id": "INC-108"
+  },
+  {
+    "scenario_id": "BENCH-DECOY-009",
+    "category": "decoy",
+    "service": "payment-api",
+    "severity": "CRITICAL",
+    "title": "Payment API Outbound TLS Certificate Expiration",
+    "description": "Outbound HTTPS requests to payment network failing during SSL handshake with x509 expiration.",
+    "symptoms": [
+      "SSLHandshakeException: PKIX path validation failed",
+      "x509: certificate has expired on internal payment edge proxy",
+      "All outbound payment connections failing immediately with connection reset"
+    ],
+    "context": {"environment": "production", "protocol": "https-tls1.3"},
+    "failure_domain": "security_tls",
+    "expected_root_cause_family": "expired_tls_certificate",
+    "acceptable_root_cause_aliases": [
+      "x509",
+      "certificate expired",
+      "ssl handshake",
+      "expired cert",
+      "truststore",
+      "tls validation",
+      "sslhandshakeexception",
+      "certificate failure"
+    ],
+    "expected_runbook_family": "RB-TLS-CERT-ROTATE",
+    "acceptable_runbook_aliases": [
+      "RB-TLS-CERT-ROTATE",
+      "rotate certificate",
+      "cert renewal",
+      "truststore update",
+      "tls cert rotate"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-DECOY-010",
+    "category": "decoy",
+    "service": "order-db-primary",
+    "severity": "CRITICAL",
+    "title": "PostgreSQL Write-Ahead Log Disk Volume Exhaustion",
+    "description": "WAL archiving script failure causing pg_wal directory to consume 100% of primary database disk space.",
+    "symptoms": [
+      "PANIC: could not locate a valid checkpoint record",
+      "pg_wal filesystem at 100% disk utilization",
+      "Database refusing write connections: no space left on device",
+      "WAL archiver process failing with exit code 1"
+    ],
+    "context": {"environment": "production", "volume": "/var/lib/postgresql/wal"},
+    "failure_domain": "storage_disk",
+    "expected_root_cause_family": "wal_disk_space_exhaustion",
+    "acceptable_root_cause_aliases": [
+      "wal disk",
+      "no space left on device",
+      "pg_wal full",
+      "disk saturation",
+      "archiver failure",
+      "filesystem full",
+      "disk space exhaustion",
+      "wal accumulation"
+    ],
+    "expected_runbook_family": "RB-PG-WAL-DISK-PURGE",
+    "acceptable_runbook_aliases": [
+      "RB-PG-WAL-DISK-PURGE",
+      "disk purge",
+      "archive wal",
+      "expand disk",
+      "wal purge"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-DECOY-011",
+    "category": "decoy",
+    "service": "auth-cache-service",
+    "severity": "HIGH",
+    "title": "Redis Sentinel Quorum Loss and Split-Brain Partition",
+    "description": "Network split between availability zones preventing Redis Sentinel cluster from reaching 2/3 master election quorum.",
+    "symptoms": [
+      "NoReachableMasterException reported by Sentinel client",
+      "Sentinel quorum count dropped to 1 of 3 nodes",
+      "Clients unable to discover active master node during AZ partition",
+      "Cache read/write traffic rejecting connections with READONLY"
+    ],
+    "context": {"environment": "production", "topology": "sentinel-3node"},
+    "failure_domain": "consensus_quorum",
+    "expected_root_cause_family": "sentinel_quorum_loss_split_brain",
+    "acceptable_root_cause_aliases": [
+      "quorum loss",
+      "split-brain",
+      "noreachablemasterexception",
+      "sentinel partition",
+      "master election failure",
+      "consensus loss",
+      "network partition"
+    ],
+    "expected_runbook_family": "RB-REDIS-SENTINEL-REQUORUM",
+    "acceptable_runbook_aliases": [
+      "RB-REDIS-SENTINEL-REQUORUM",
+      "requorum",
+      "sentinel reset",
+      "force failover",
+      "sentinel requorum"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-DECOY-012",
+    "category": "decoy",
+    "service": "event-queue-worker",
+    "severity": "HIGH",
+    "title": "Event Validator Regular Expression Catastrophic Backtracking",
+    "description": "Unanchored nested quantifier regex causing worker CPU saturation on nested input strings.",
+    "symptoms": [
+      "Worker node CPU pinned at 100% across all cores",
+      "Thread dump reveals all workers stuck in java.util.regex.Pattern$Loop",
+      "Message processing rate dropped to 0 msg/sec without deserialization errors",
+      "Memory usage stable but event latency exceeding 120s"
+    ],
+    "context": {"environment": "production", "regex_field": "order_reference"},
+    "failure_domain": "algorithmic_cpu",
+    "expected_root_cause_family": "redos_regex_catastrophic_backtracking",
+    "acceptable_root_cause_aliases": [
+      "redos",
+      "catastrophic backtracking",
+      "regex backtracking",
+      "pattern matcher loop",
+      "regex cpu exhaustion",
+      "regular expression saturation",
+      "unanchored quantifier"
+    ],
+    "expected_runbook_family": "RB-REGEX-TIMEOUT-KILL",
+    "acceptable_runbook_aliases": [
+      "RB-REGEX-TIMEOUT-KILL",
+      "regex timeout",
+      "pattern patch",
+      "bypass validator",
+      "regex kill"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-NOVEL-013",
+    "category": "novel",
+    "service": "search-indexer",
+    "severity": "CRITICAL",
+    "title": "Elasticsearch Cluster Red State from Unassigned Primary Shards",
+    "description": "Elasticsearch cluster entered RED status after low disk watermark threshold blocked primary shard allocation.",
+    "symptoms": [
+      "Cluster health status: RED (4 unassigned primary shards)",
+      "cluster.routing.allocation.disk.watermark.flood_stage breached on 2 data nodes",
+      "Search indexing requests failing with ClusterBlockException",
+      "Indices marked read-only due to disk flood stage"
+    ],
+    "context": {"environment": "production", "cluster": "es-search-prod"},
+    "failure_domain": "search_distributed_cluster",
+    "expected_root_cause_family": "elasticsearch_disk_watermark_unassigned_shards",
+    "acceptable_root_cause_aliases": [
+      "unassigned shards",
+      "cluster red",
+      "disk watermark",
+      "flood stage",
+      "clusterblockexception",
+      "shard allocation",
+      "read-only indices"
+    ],
+    "expected_runbook_family": "RB-ES-REROUTE-SHARDS",
+    "acceptable_runbook_aliases": [
+      "RB-ES-REROUTE-SHARDS",
+      "reroute shards",
+      "clear flood stage",
+      "expand data node disk",
+      "es reroute"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-NOVEL-014",
+    "category": "novel",
+    "service": "notification-gateway",
+    "severity": "HIGH",
+    "title": "APNs Apple Push Notification HTTP/2 GOAWAY Stream Storm",
+    "description": "Batch push notification pipeline bombarded with HTTP/2 GOAWAY frames with error code 8 (Invalid Token).",
+    "symptoms": [
+      "APNs HTTP/2 connection closed with GOAWAY (Error Code 0x8: BadDeviceToken)",
+      "Excessive HTTP/2 stream churn exceeding 200 reconnects per minute",
+      "Notification delivery queue lag exceeding 350,000 pushes",
+      "Outbound gateway worker CPU spiking due to continuous TLS renegotiation"
+    ],
+    "context": {"environment": "production", "apns_env": "production"},
+    "failure_domain": "mobile_push_delivery",
+    "expected_root_cause_family": "apns_http2_goaway_token_invalidation",
+    "acceptable_root_cause_aliases": [
+      "goaway frame",
+      "baddevicetoken",
+      "apns stream churn",
+      "invalid device token",
+      "http/2 stream reset",
+      "push token invalidation"
+    ],
+    "expected_runbook_family": "RB-APNS-SESSION-RESET",
+    "acceptable_runbook_aliases": [
+      "RB-APNS-SESSION-RESET",
+      "apns session reset",
+      "purge invalid tokens",
+      "connection throttle",
+      "apns reset"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-NOVEL-015",
+    "category": "novel",
+    "service": "billing-ledger",
+    "severity": "HIGH",
+    "title": "Dual-Write Kafka Transaction Coordinator Producer Fencing Timeout",
+    "description": "Transactional Kafka producer coordinator fencing out zombie writer after network blip.",
+    "symptoms": [
+      "ProducerFencedException on commitTransaction() in billing worker",
+      "Transaction coordinator timeout on broker node 2",
+      "Uncommitted billing ledgers pending across 12 partitions",
+      "Worker restart fails with InvalidProducerEpochException"
+    ],
+    "context": {"environment": "production", "kafka_cluster": "fintech-core"},
+    "failure_domain": "distributed_transactions",
+    "expected_root_cause_family": "kafka_producer_fencing_epoch_timeout",
+    "acceptable_root_cause_aliases": [
+      "producerfencedexception",
+      "transaction coordinator",
+      "zombie producer",
+      "invalidproducerepoch",
+      "2pc timeout",
+      "producer epoch",
+      "kafka transaction fencing"
+    ],
+    "expected_runbook_family": "RB-KAFKA-FENCE-ZOMBIE",
+    "acceptable_runbook_aliases": [
+      "RB-KAFKA-FENCE-ZOMBIE",
+      "fence zombie",
+      "reset transactional id",
+      "restart coordinator",
+      "kafka fence zombie"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  },
+  {
+    "scenario_id": "BENCH-NOVEL-016",
+    "category": "novel",
+    "service": "graphql-gateway",
+    "severity": "HIGH",
+    "title": "GraphQL Unbounded Nested Query Depth Event Loop Starvation",
+    "description": "Maliciously crafted deeply nested GraphQL query exhausting Node.js V8 event loop processing time.",
+    "symptoms": [
+      "Node.js event loop lag exceeded 4500ms threshold",
+      "HTTP 504 on /graphql endpoint from upstream envoy ingress proxy",
+      "V8 heap usage normal but response latency spiked to 30s",
+      "Active socket count climbing without network I/O activity"
+    ],
+    "context": {"environment": "production", "runtime": "nodejs-20"},
+    "failure_domain": "api_gateway_query_complexity",
+    "expected_root_cause_family": "graphql_nested_query_depth_starvation",
+    "acceptable_root_cause_aliases": [
+      "nested query depth",
+      "event loop lag",
+      "query complexity",
+      "unbounded recursion",
+      "ast traversal starvation",
+      "event loop starvation",
+      "graphql depth"
+    ],
+    "expected_runbook_family": "RB-GRAPHQL-DEPTH-LIMIT",
+    "acceptable_runbook_aliases": [
+      "RB-GRAPHQL-DEPTH-LIMIT",
+      "depth limit",
+      "query complexity filter",
+      "rate limit client",
+      "graphql depth limit"
+    ],
+    "has_trusted_precedent": false,
+    "expected_precedent_id": null
+  }
+]

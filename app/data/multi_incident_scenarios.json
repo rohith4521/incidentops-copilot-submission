@@ -1,0 +1,276 @@
+{
+  "description": "PHASE 5.4 — Multi-Incident Continuous Learning Scenario Dataset",
+  "version": "1.0.0",
+  "training_incidents": [
+    {
+      "incident_id": "INC-SEQ-001",
+      "service": "billing-service",
+      "severity": "CRITICAL",
+      "alert_signature": "BillingPostgresDeadlockTxRollback",
+      "title": "Billing Postgres Deadlock and Transaction Rollback Contention",
+      "symptoms": [
+        "deadlock detected in process awaiting ExclusiveLock on relation invoice_ledger",
+        "transaction rollback rate exceeding 45% on billing write transactions",
+        "p99 billing write latency degraded past 5000ms"
+      ],
+      "root_cause": "Concurrent payment finalization workers acquired invoice and customer ledger locks in opposing order under peak invoice billing cycle.",
+      "failed_mitigations": [
+        "Increasing database worker concurrency exacerbated row lock contention and forced db cpu to 99%.",
+        "Blindly restarting worker pods left orphaned advisory locks in postgres."
+      ],
+      "verified_runbook": "RB-BILLING-SERIALIZE-TX",
+      "resolution": "Applied RB-BILLING-SERIALIZE-TX: enforced deterministic row locking order and added optimistic lock retry backoff.",
+      "postmortem_summary": "Resolved by executing RB-BILLING-SERIALIZE-TX to sort lock acquisition sequence across invoice and ledger entities.",
+      "tags": ["billing-service", "postgres", "deadlock", "invoice_ledger", "RB-BILLING-SERIALIZE-TX", "INC-SEQ-001"],
+      "should_verify": true,
+      "verifier": "oncall-sre"
+    },
+    {
+      "incident_id": "INC-SEQ-002",
+      "service": "billing-service",
+      "severity": "CRITICAL",
+      "alert_signature": "BillingStripeGatewayTimeoutCircuitOpen",
+      "title": "Stripe Gateway Webhook Delivery Timeout & Worker Egress Starvation",
+      "symptoms": [
+        "upstream payment gateway webhook endpoint returned 504 Gateway Timeout",
+        "billing_egress_worker_threads pool at 100% capacity",
+        "HTTP connection lease timeout connecting to api.stripe.com"
+      ],
+      "root_cause": "External payment provider latency spike caused unbounded thread lease waiting on outbound webhook client, starving invoice processing threads.",
+      "failed_mitigations": [
+        "Restarting billing-service pods caused immediate avalanche retry storm of duplicate charge requests to upstream provider.",
+        "Increasing egress timeout from 10s to 30s aggravated thread exhaustion."
+      ],
+      "verified_runbook": "RB-GATEWAY-CIRCUIT-TRIP",
+      "resolution": "Applied RB-GATEWAY-CIRCUIT-TRIP: opened circuit breaker for non-critical webhooks and rerouted pending charges to asynchronous SQS queue.",
+      "postmortem_summary": "Resolved via RB-GATEWAY-CIRCUIT-TRIP by isolating external stripe webhook egress and buffering outgoing calls.",
+      "tags": ["billing-service", "stripe", "gateway", "504", "circuit-breaker", "RB-GATEWAY-CIRCUIT-TRIP", "INC-SEQ-002"],
+      "should_verify": true,
+      "verifier": "oncall-sre"
+    },
+    {
+      "incident_id": "INC-SEQ-003",
+      "service": "auth-service",
+      "severity": "CRITICAL",
+      "alert_signature": "AuthJWTCacheStampede",
+      "title": "JWT Signing Key Expiration & Redis Keyset Stampede",
+      "symptoms": [
+        "JWT validation cache miss rate spiked from 0.1% to 94%",
+        "auth-db queries/sec spiked 20x to 15,000 QPS on public keys table",
+        "token verification response time exceeded 3200ms"
+      ],
+      "root_cause": "Synchronous expiration of the primary RSA token signing public key invalidated keyset caches across all auth nodes simultaneously, stampeding the auth metadata database.",
+      "failed_mitigations": [
+        "Flushing the auth Redis cluster evicted all active sessions and dropped valid user authentication tokens.",
+        "Restarting auth-service pods caused immediate cold-cache thundering herd back onto the auth database."
+      ],
+      "verified_runbook": "RB-AUTH-WARM-KEYSET",
+      "resolution": "Applied RB-AUTH-WARM-KEYSET: pre-warmed Redis cluster with dual active-passive key pairs and configured proactive TTL jitter.",
+      "postmortem_summary": "Resolved via RB-AUTH-WARM-KEYSET by injecting overlapping active keyset and jittering cache TTLs.",
+      "tags": ["auth-service", "jwt", "keyset", "stampede", "redis", "RB-AUTH-WARM-KEYSET", "INC-SEQ-003"],
+      "should_verify": true,
+      "verifier": "oncall-sre"
+    },
+    {
+      "incident_id": "INC-SEQ-004",
+      "service": "catalog-service",
+      "severity": "CRITICAL",
+      "alert_signature": "CatalogCategoryCacheStampede",
+      "title": "Catalog Category Tree Redis TTL Expiry Thundering Herd",
+      "symptoms": [
+        "category_cache_miss_rate exceeded 98% across all catalog replicas",
+        "backend catalog search elasticsearch cluster CPU saturated at 96%",
+        "p99 category browsing latency spiked to 4800ms"
+      ],
+      "root_cause": "Top-level category tree cache key expired with zero jitter during flash sales, triggering distributed thundering herd queries to the Elasticsearch backend.",
+      "failed_mitigations": [
+        "Disabling Redis caching and querying Elasticsearch directly tripped backend cluster overload circuit breakers.",
+        "Increasing JVM heap on catalog-service pods caused severe Stop-the-World garbage collection pauses."
+      ],
+      "verified_runbook": "RB-CATALOG-STAGGER-TTL",
+      "resolution": "Applied RB-CATALOG-STAGGER-TTL: populated category hierarchy with probabilistic early expiration (XFetch algorithm) and warm cache priming.",
+      "postmortem_summary": "Resolved via RB-CATALOG-STAGGER-TTL: mitigated cache stampede by staggering key expiry and warming category index.",
+      "tags": ["catalog-service", "elasticsearch", "category", "cache", "thundering", "herd", "RB-CATALOG-STAGGER-TTL", "INC-SEQ-004"],
+      "should_verify": true,
+      "verifier": "oncall-sre"
+    },
+    {
+      "incident_id": "INC-SEQ-005",
+      "service": "event-streaming-hub",
+      "severity": "CRITICAL",
+      "alert_signature": "KafkaConsumerGroupRebalanceStorm",
+      "title": "Kafka Consumer Heartbeat Starvation and Cascading Rebalance Storm",
+      "symptoms": [
+        "CommitFailedException: max.poll.interval.ms exceeded on event-pipeline-consumer",
+        "consumer group rebalance storm: group state stuck in PreparingRebalance",
+        "kafka consumer group message lag exceeded 250,000 records"
+      ],
+      "root_cause": "Excessive JSON batch payload sizes caused consumer processing loop to exceed max.poll.interval.ms, triggering repeated coordinator partition revoking and rebalancing.",
+      "failed_mitigations": [
+        "Forcefully restarting out-of-sync consumer pods caused cascading partition reassignment across the entire consumer cluster.",
+        "Reducing session.timeout.ms caused false positive node dead detections and escalated rebalance frequency."
+      ],
+      "verified_runbook": "RB-KAFKA-EXTEND-MAX-POLL",
+      "resolution": "Applied RB-KAFKA-EXTEND-MAX-POLL: dynamically doubled max.poll.interval.ms to 600,000ms, reduced max.poll.records to 100, and stabilized consumer heartbeat thread.",
+      "postmortem_summary": "Resolved via RB-KAFKA-EXTEND-MAX-POLL by decoupling heartbeats and tuning poll intervals.",
+      "tags": ["event-streaming-hub", "kafka", "rebalance", "consumer-lag", "heartbeat", "RB-KAFKA-EXTEND-MAX-POLL", "INC-SEQ-005"],
+      "should_verify": true,
+      "verifier": "oncall-sre"
+    },
+    {
+      "incident_id": "INC-SEQ-006",
+      "service": "search-service",
+      "severity": "HIGH",
+      "alert_signature": "ElasticsearchFieldDataCacheOverflowDraft",
+      "title": "Draft Postmortem: Elasticsearch Field Data Cache Overflow & JVM Pressure",
+      "symptoms": [
+        "circuit_breaking_exception: [parent] Data too large, data for fielddata would be larger than limit",
+        "fielddata cache consumption exceeded 60% of JVM heap"
+      ],
+      "root_cause": "Unverified draft postmortem hypothesis: unindexed text field aggregation caused unbounded heap consumption.",
+      "failed_mitigations": [
+        "Unverified AI draft action: restart cluster nodes one by one without disabling shard allocation."
+      ],
+      "verified_runbook": "RB-UNVERIFIED-SEARCH-DRAFT",
+      "resolution": "Unverified draft: pending human review.",
+      "postmortem_summary": "Unverified draft: pending SRE investigation.",
+      "tags": ["search-service", "fielddata", "elasticsearch", "INC-SEQ-006"],
+      "should_verify": false,
+      "verifier": null
+    }
+  ],
+  "follow_up_evaluation_alerts": [
+    {
+      "alert_id": "EVAL-ALERT-1",
+      "name": "Paraphrased Billing Deadlock Alert",
+      "service": "billing-service",
+      "query_type": "paraphrased_repeat",
+      "title": "InvoiceLedgerRowContentionPostgresLockRollback",
+      "severity": "CRITICAL",
+      "symptoms": [
+        "PostgreSQL process encountered deadlock while attempting ExclusiveLock on invoice_ledger",
+        "aborted transaction rollback rate exceeds 42% on customer billing accounts",
+        "severe billing latency degradation with transaction commit stalls"
+      ],
+      "expected_outcome": "RECALL_ACCEPTED",
+      "expected_matched_incident_id": "INC-SEQ-001",
+      "expected_runbook": "RB-BILLING-SERIALIZE-TX",
+      "expected_novelty": false,
+      "enable_memory": true,
+      "description": "Tests that a paraphrased repeat alert correctly recalls INC-SEQ-001 and grounds verified runbook while rejecting INC-SEQ-002."
+    },
+    {
+      "alert_id": "EVAL-ALERT-2",
+      "name": "Misleading Generic SRE Vocabulary on Auth Service",
+      "service": "auth-service",
+      "query_type": "misleading_generic_decoy",
+      "title": "AuthServiceLatencySpikeAndResourceSaturation",
+      "severity": "CRITICAL",
+      "symptoms": [
+        "high latency observed on auth-service endpoint with p99 response time degraded",
+        "downstream timeout and high error rate detected on service mesh ingress",
+        "LDAP connection refused on port 636 due to expired corporate directory certificate"
+      ],
+      "expected_outcome": "REJECTED_LOW_RELEVANCE",
+      "expected_matched_incident_id": null,
+      "expected_runbook": null,
+      "expected_novelty": true,
+      "enable_memory": true,
+      "description": "Tests that generic SRE vocabulary (latency, p99, timeout, error rate) does NOT fool relevance gate into accepting INC-SEQ-003."
+    },
+    {
+      "alert_id": "EVAL-ALERT-3",
+      "name": "Same Service Different Failure Domain (Billing OOM)",
+      "service": "billing-service",
+      "query_type": "same_service_different_domain",
+      "title": "BillingWorkerOOMKilledContainerMemoryExhaustion",
+      "severity": "CRITICAL",
+      "symptoms": [
+        "billing-service pod terminated with exit code 137 OOMKilled",
+        "container memory usage reached 100% of limits.memory (2048Mi)",
+        "heap memory leak detected in batch export serialization buffer"
+      ],
+      "expected_outcome": "REJECTED_DIFFERENT_FAILURE_MODE",
+      "expected_matched_incident_id": null,
+      "expected_runbook": null,
+      "expected_novelty": true,
+      "enable_memory": true,
+      "description": "Tests that billing-service having 2 verified memories does NOT cause false match when failure domain is container OOM."
+    },
+    {
+      "alert_id": "EVAL-ALERT-4",
+      "name": "Paraphrased Architectural Pattern (Catalog Cache Stampede)",
+      "service": "catalog-service",
+      "query_type": "paraphrased_repeat",
+      "title": "CategoryHierarchyCacheMissAndESThunderingHerd",
+      "severity": "CRITICAL",
+      "symptoms": [
+        "synchronized cache invalidation on category browsing tree",
+        "elasticsearch backend nodes reporting 95% CPU and search thread queue saturation",
+        "customer catalog browsing p99 latency elevated to 4600ms"
+      ],
+      "expected_outcome": "RECALL_ACCEPTED",
+      "expected_matched_incident_id": "INC-SEQ-004",
+      "expected_runbook": "RB-CATALOG-STAGGER-TTL",
+      "expected_novelty": false,
+      "enable_memory": true,
+      "description": "Tests retrieval and grounding of verified runbook for distributed cache stampede in catalog-service."
+    },
+    {
+      "alert_id": "EVAL-ALERT-5",
+      "name": "Genuinely Novel Incident (Zero Prior Precedent)",
+      "service": "ml-inference-gateway",
+      "query_type": "genuinely_novel",
+      "title": "CudaOutOfMemoryAndTensorRTKernelPanic",
+      "severity": "CRITICAL",
+      "symptoms": [
+        "CUDA out of memory error during dynamic batch allocation",
+        "TensorRT execution context failed with cudaErrorMemoryAllocation",
+        "GPU memory utilization pegged at 24576MiB with zero available pages"
+      ],
+      "expected_outcome": "NOVEL_ZERO_MATCHES",
+      "expected_matched_incident_id": null,
+      "expected_runbook": null,
+      "expected_novelty": true,
+      "enable_memory": true,
+      "description": "Tests that an unseen service and failure mode produces novelty=True and 0 historical matches."
+    },
+    {
+      "alert_id": "EVAL-ALERT-6",
+      "name": "Alert Matching Unverified Draft Memory",
+      "service": "search-service",
+      "query_type": "draft_isolation_test",
+      "title": "ElasticsearchFieldDataCacheOverflowAndGC",
+      "severity": "HIGH",
+      "symptoms": [
+        "circuit_breaking_exception: [parent] Data too large, data for fielddata would be larger than limit",
+        "fielddata cache consumption exceeded 60% of JVM heap"
+      ],
+      "expected_outcome": "REJECTED_UNVERIFIED_DRAFT_MEMORY",
+      "expected_matched_incident_id": null,
+      "expected_runbook": null,
+      "expected_novelty": true,
+      "enable_memory": true,
+      "description": "Tests that an alert matching an unverified draft postmortem (INC-SEQ-006) is rejected by provenance gate."
+    },
+    {
+      "alert_id": "EVAL-ALERT-7",
+      "name": "Stateless Mode Check on Known Precedent",
+      "service": "billing-service",
+      "query_type": "stateless_mode",
+      "title": "InvoiceLedgerRowContentionPostgresLockRollback",
+      "severity": "CRITICAL",
+      "symptoms": [
+        "PostgreSQL process encountered deadlock while attempting ExclusiveLock on invoice_ledger",
+        "aborted transaction rollback rate exceeds 42% on customer billing accounts",
+        "severe billing latency degradation with transaction commit stalls"
+      ],
+      "expected_outcome": "STATELESS_NO_MEMORY",
+      "expected_matched_incident_id": null,
+      "expected_runbook": null,
+      "expected_novelty": true,
+      "enable_memory": false,
+      "description": "Tests that enable_memory=False completely bypasses memory recall even when exact historical precedent exists."
+    }
+  ]
+}

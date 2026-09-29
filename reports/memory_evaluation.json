@@ -1,0 +1,725 @@
+{
+  "evaluation_timestamp": "2026-09-29T08:42:48Z",
+  "summary_metrics": {
+    "total_test_cases": 20,
+    "total_evaluations": 40,
+    "relevant_family_retrieval_rate": 1.0,
+    "relevant_family_retrieval_count": "10/10",
+    "false_retrieval_rate_on_decoys": 0.0,
+    "false_retrieval_count_on_decoys": "0/5",
+    "decoy_specificity_rate": 1.0,
+    "decoy_correct_rejection_count": "5/5",
+    "novel_case_false_match_rate": 0.0,
+    "novel_case_false_match_count": "0/5",
+    "evidence_availability": {
+      "memory_on": {
+        "total_variant_cases": 10,
+        "historical_matches_found": 10,
+        "historical_match_rate": 1.0,
+        "verified_runbook_available_rate": 1.0,
+        "avg_failed_mitigations_documented": 2.0,
+        "avg_latency_ms": 347.5
+      },
+      "memory_off": {
+        "total_variant_cases": 10,
+        "historical_matches_found": 0,
+        "historical_match_rate": 0.0,
+        "verified_runbook_available_rate": 0.0,
+        "avg_failed_mitigations_documented": 0.0,
+        "avg_latency_ms": 0.37
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "case_id": "eval-inc104-v1",
+      "incident_family": "INC-104",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-104",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in payment-api matching INC-104.",
+      "runbook": "RB-PAYMENT-CIRCUIT-SHED",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 438.06,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc104-v1",
+      "incident_family": "INC-104",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Outbound HTTPS calls to Stripe payment gateway exceeding 35s latency budget, Tomcat worker thread pool 100% busy across all payment-api replicas, Cascading 504 Gateway Timeout responses on checkout charge route, Payment retry surge compounding outbound connection wait queue) indicate resource saturation, dependency failure, or connection exhaustion on payment-api.",
+      "runbook": "RB-PAYMENT-API-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on payment-api without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.72,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc104-v2",
+      "incident_family": "INC-104",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-104",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in payment-api matching INC-104.",
+      "runbook": "RB-PAYMENT-CIRCUIT-SHED",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 373.35,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc104-v2",
+      "incident_family": "INC-104",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Third-party payment gateway HTTP socket timeout threshold breached (>30000ms), Zero idle execution threads remaining in payment service pool, Ingress reverse proxy recording flood of 504 Gateway Timeouts, Aggressive client checkout retry loop saturating pending request backlog) indicate resource saturation, dependency failure, or connection exhaustion on payment-api.",
+      "runbook": "RB-PAYMENT-API-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on payment-api without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.4,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc104-decoy",
+      "incident_family": "INC-104",
+      "variant_type": "decoy",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (X509CertificateExpiredException on inbound HTTPS listener, TLS handshake rejection rate reaching 100% on port 8443, Ingress envoy reporting local SSL verification terminated, All incoming checkout traffic dropped at edge before application layer) suggest resource contention, configuration drift, or upstream dependency degradation on payment-api.",
+      "runbook": "RB-PAYMENT-API-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 371.88,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc104-decoy",
+      "incident_family": "INC-104",
+      "variant_type": "decoy",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (X509CertificateExpiredException on inbound HTTPS listener, TLS handshake rejection rate reaching 100% on port 8443, Ingress envoy reporting local SSL verification terminated, All incoming checkout traffic dropped at edge before application layer) indicate resource saturation, dependency failure, or connection exhaustion on payment-api.",
+      "runbook": "RB-PAYMENT-API-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on payment-api without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.35,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc108-v1",
+      "incident_family": "INC-108",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-108",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in order-db-primary matching INC-108.",
+      "runbook": "RB-PG-KILL-LOCKS-ORDER-SORT",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 373.33,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc108-v1",
+      "incident_family": "INC-108",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (SQLSTATE 40P01 detected across concurrent order reservation transactions, Lock wait queue depth climbing past 190 active connections, Transaction rollback rate surging above normal baseline, Postgres engine CPU pegged at 97% under lock manager strain) indicate resource saturation, dependency failure, or connection exhaustion on order-db-primary.",
+      "runbook": "RB-ORDER-DB-PRIMARY-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on order-db-primary without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.4,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc108-v2",
+      "incident_family": "INC-108",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-108",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in order-db-primary matching INC-108.",
+      "runbook": "RB-PG-KILL-LOCKS-ORDER-SORT",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 364.97,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc108-v2",
+      "incident_family": "INC-108",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Concurrent inventory ledger updates experiencing cyclic deadlock exceptions, Blocked backend processes waiting on ExclusiveLock exceeding threshold, Severe rollback rate spike impacting order placement workflows, Database server CPU saturation near 99% with thread lock waits) indicate resource saturation, dependency failure, or connection exhaustion on order-db-primary.",
+      "runbook": "RB-ORDER-DB-PRIMARY-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on order-db-primary without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.37,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc108-decoy",
+      "incident_family": "INC-108",
+      "variant_type": "decoy",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (PANIC: could not write to file pg_wal/xlog: No space left on device, Disk utilization on /var/lib/postgresql/data at 99.8%, Database entered read-only recovery mode rejecting all transactions, S3 WAL archiving agent failing due to network partition) suggest resource contention, configuration drift, or upstream dependency degradation on order-db-primary.",
+      "runbook": "RB-ORDER-DB-PRIMARY-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 434.69,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc108-decoy",
+      "incident_family": "INC-108",
+      "variant_type": "decoy",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (PANIC: could not write to file pg_wal/xlog: No space left on device, Disk utilization on /var/lib/postgresql/data at 99.8%, Database entered read-only recovery mode rejecting all transactions, S3 WAL archiving agent failing due to network partition) indicate resource saturation, dependency failure, or connection exhaustion on order-db-primary.",
+      "runbook": "RB-ORDER-DB-PRIMARY-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on order-db-primary without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.38,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc203-v1",
+      "incident_family": "INC-203",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-203",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in auth-cache-service matching INC-203.",
+      "runbook": "RB-REDIS-EVICTION-TUNE-SCALE",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 431.89,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc203-v1",
+      "incident_family": "INC-203",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Redis node memory at 100% maxmemory ceiling throwing OOM command rejected errors, Token verification latency degradation reaching 1150ms, Downstream microservices failing JWT public key validation with 500 status, Auth service local fallback cache overflowing leading to crash loops) indicate resource saturation, dependency failure, or connection exhaustion on auth-cache-service.",
+      "runbook": "RB-AUTH-CACHE-SERVICE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on auth-cache-service without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.38,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc203-v2",
+      "incident_family": "INC-203",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-203",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in auth-cache-service matching INC-203.",
+      "runbook": "RB-REDIS-EVICTION-TUNE-SCALE",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 427.23,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc203-v2",
+      "incident_family": "INC-203",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Maxmemory quota saturated with command OOM errors in Redis logs, Token validation p99 latency spiking above 1.2s, HTTP 500 error wave across downstream consumers querying JWT keys, Memory exhaustion causing auth-api pod restarts) indicate resource saturation, dependency failure, or connection exhaustion on auth-cache-service.",
+      "runbook": "RB-AUTH-CACHE-SERVICE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on auth-cache-service without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.34,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc203-decoy",
+      "incident_family": "INC-203",
+      "variant_type": "decoy",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Sentinel cluster lost quorum across availability zone us-east-1b, Multiple nodes advertising conflicting master epochs, Read-only replica failover aborted due to missing quorum votes, Client driver logging NoReachableMasterException) suggest resource contention, configuration drift, or upstream dependency degradation on auth-cache-service.",
+      "runbook": "RB-AUTH-CACHE-SERVICE-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 357.87,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc203-decoy",
+      "incident_family": "INC-203",
+      "variant_type": "decoy",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Sentinel cluster lost quorum across availability zone us-east-1b, Multiple nodes advertising conflicting master epochs, Read-only replica failover aborted due to missing quorum votes, Client driver logging NoReachableMasterException) indicate resource saturation, dependency failure, or connection exhaustion on auth-cache-service.",
+      "runbook": "RB-AUTH-CACHE-SERVICE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on auth-cache-service without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.33,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc305-v1",
+      "incident_family": "INC-305",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-305",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in event-queue-worker matching INC-305.",
+      "runbook": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 369.33,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc305-v1",
+      "incident_family": "INC-305",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Consumer lag accumulating over 500k uncommitted messages on partition 4, Worker service throwing continuous RecordDeserializationException errors, Persistent 60-second consumer group rebalance loops, Fulfillment event consumption completely halted) indicate resource saturation, dependency failure, or connection exhaustion on event-queue-worker.",
+      "runbook": "RB-EVENT-QUEUE-WORKER-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on event-queue-worker without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.33,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc305-v2",
+      "incident_family": "INC-305",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-305",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in event-queue-worker matching INC-305.",
+      "runbook": "RB-KAFKA-SKIP-OFFSET-TO-DLQ",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 356.76,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc305-v2",
+      "incident_family": "INC-305",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Partition lag rapidly escalating past 480000 records on worker group, Worker process encountering fatal Avro deserialization errors repeatedly, Constant consumer group rebalancing preventing partition progression, Downstream order processing queue stalled at poison offset) indicate resource saturation, dependency failure, or connection exhaustion on event-queue-worker.",
+      "runbook": "RB-EVENT-QUEUE-WORKER-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on event-queue-worker without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.38,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc305-decoy",
+      "incident_family": "INC-305",
+      "variant_type": "decoy",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (SSLHandshakeException: Received fatal alert: certificate_unknown, Worker unable to authenticate to Kafka broker port 9093, All consumer instances disconnected during SASL/SSL handshake, Kafka client SSL truststore validation failed on broker cert) suggest resource contention, configuration drift, or upstream dependency degradation on event-queue-worker.",
+      "runbook": "RB-EVENT-QUEUE-WORKER-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 401.15,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc305-decoy",
+      "incident_family": "INC-305",
+      "variant_type": "decoy",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (SSLHandshakeException: Received fatal alert: certificate_unknown, Worker unable to authenticate to Kafka broker port 9093, All consumer instances disconnected during SASL/SSL handshake, Kafka client SSL truststore validation failed on broker cert) indicate resource saturation, dependency failure, or connection exhaustion on event-queue-worker.",
+      "runbook": "RB-EVENT-QUEUE-WORKER-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on event-queue-worker without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.33,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc402-v1",
+      "incident_family": "INC-402",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-402",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in checkout-service matching INC-402.",
+      "runbook": "RB-CHECKOUT-SERVICE-RESOLVE",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 390.73,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc402-v1",
+      "incident_family": "INC-402",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (p99 checkout response time degraded to 4300ms, RedisConnectionClosedException logged during connection lease, redis_pool_wait_duration_seconds exceeding 2800ms, Elevated HTTP 503 Service Unavailable error rate) indicate resource saturation, dependency failure, or connection exhaustion on checkout-service.",
+      "runbook": "RB-CHECKOUT-SERVICE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on checkout-service without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.32,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc402-v2",
+      "incident_family": "INC-402",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": true,
+      "historical_match_found": true,
+      "recalled_incident_id": "INC-402",
+      "match_strength": "High",
+      "root_cause": "Recurrent failure mode observed in checkout-service matching INC-402.",
+      "runbook": "RB-CHECKOUT-SERVICE-RESOLVE",
+      "failed_mitigations": [
+        "Restarting pods alone causes immediate re-saturation as client retries hit pods during startup.",
+        "Increasing replica count aggravates upstream firewall or connection pool limits."
+      ],
+      "latency_ms": 392.94,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc402-v2",
+      "incident_family": "INC-402",
+      "variant_type": "paraphrased_variant",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Checkout transaction latency p99 spiking over 4.0s, Connection lease acquisition failures with RedisConnectionClosedException, Connection pool wait time metric climbing past 2.6 seconds, Cascading 503 errors returned to mobile and web checkout clients) indicate resource saturation, dependency failure, or connection exhaustion on checkout-service.",
+      "runbook": "RB-CHECKOUT-SERVICE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on checkout-service without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.36,
+      "expected_family_retrieved": false
+    },
+    {
+      "case_id": "eval-inc402-decoy",
+      "incident_family": "INC-402",
+      "variant_type": "decoy",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Single-threaded CPU usage pegged at 100% on coupon validation routine, Regex engine stuck in exponential backtracking loop, Worker thread hanging indefinitely inside java.util.regex.Pattern, Memory normal but event loop completely blocked by coupon parsing) suggest resource contention, configuration drift, or upstream dependency degradation on checkout-service.",
+      "runbook": "RB-CHECKOUT-SERVICE-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 372.8,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-inc402-decoy",
+      "incident_family": "INC-402",
+      "variant_type": "decoy",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Single-threaded CPU usage pegged at 100% on coupon validation routine, Regex engine stuck in exponential backtracking loop, Worker thread hanging indefinitely inside java.util.regex.Pattern, Memory normal but event loop completely blocked by coupon parsing) indicate resource saturation, dependency failure, or connection exhaustion on checkout-service.",
+      "runbook": "RB-CHECKOUT-SERVICE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on checkout-service without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.35,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-1",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Primary shard unassigned for index products_v3, Node search-data-02 dropped from master node cluster state, Cluster health yellow with 12 unassigned replica shards, Search indexing throughput degraded by 85%) suggest resource contention, configuration drift, or upstream dependency degradation on search-indexing-worker.",
+      "runbook": "RB-SEARCH-INDEXING-WORKER-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 219.13,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-1",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Primary shard unassigned for index products_v3, Node search-data-02 dropped from master node cluster state, Cluster health yellow with 12 unassigned replica shards, Search indexing throughput degraded by 85%) indicate resource saturation, dependency failure, or connection exhaustion on search-indexing-worker.",
+      "runbook": "RB-SEARCH-INDEXING-WORKER-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on search-indexing-worker without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.31,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-2",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Too many parts in all data parts in table events_daily (3420 > 3000), Background merge pool saturated and unable to merge small parts, Incoming analytics batch inserts rejected with HTTP 500, Mutation kill commands timing out due to lock on part metadata) suggest resource contention, configuration drift, or upstream dependency degradation on analytics-pipeline.",
+      "runbook": "RB-ANALYTICS-PIPELINE-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 216.07,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-2",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Too many parts in all data parts in table events_daily (3420 > 3000), Background merge pool saturated and unable to merge small parts, Incoming analytics batch inserts rejected with HTTP 500, Mutation kill commands timing out due to lock on part metadata) indicate resource saturation, dependency failure, or connection exhaustion on analytics-pipeline.",
+      "runbook": "RB-ANALYTICS-PIPELINE-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on analytics-pipeline without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.34,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-3",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Outbound email API returning HTTP 429 Too Many Requests, Rate limit headers indicate 0 credits remaining in current minute window, Notification queue backpressure overflowing to Dead Letter Queue, SMS and push notification fallbacks saturating secondary gateways) suggest resource contention, configuration drift, or upstream dependency degradation on notification-dispatcher.",
+      "runbook": "RB-NOTIFICATION-DISPATCHER-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 211.02,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-3",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Outbound email API returning HTTP 429 Too Many Requests, Rate limit headers indicate 0 credits remaining in current minute window, Notification queue backpressure overflowing to Dead Letter Queue, SMS and push notification fallbacks saturating secondary gateways) indicate resource saturation, dependency failure, or connection exhaustion on notification-dispatcher.",
+      "runbook": "RB-NOTIFICATION-DISPATCHER-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on notification-dispatcher without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.34,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-4",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Vault sys/leases/lookup latency spiked to 8500ms, Raft consensus commit duration exceeded 3.5s SLA, Downstream microservices failing to acquire database dynamic credentials, Vault active node stepping down due to raft heartbeat timeout) suggest resource contention, configuration drift, or upstream dependency degradation on secrets-manager.",
+      "runbook": "RB-SECRETS-MANAGER-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 220.31,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-4",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Vault sys/leases/lookup latency spiked to 8500ms, Raft consensus commit duration exceeded 3.5s SLA, Downstream microservices failing to acquire database dynamic credentials, Vault active node stepping down due to raft heartbeat timeout) indicate resource saturation, dependency failure, or connection exhaustion on secrets-manager.",
+      "runbook": "RB-SECRETS-MANAGER-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on secrets-manager without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.32,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-5",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": true,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Worker subrequest quota exceeded (50 subrequests per invocation), Edge returning HTTP 1101 Worker Threw Exception to end users, Origin shielding cache bypassed causing 300% traffic surge on origin, Personalized geo-pricing feature failing across EU regions) suggest resource contention, configuration drift, or upstream dependency degradation on cdn-edge-gateway.",
+      "runbook": "RB-CDN-EDGE-GATEWAY-DIAGNOSTIC-ISOLATE",
+      "failed_mitigations": [
+        "Do not execute blind rolling restarts without capturing diagnostic thread/heap dumps.",
+        "Avoid modifying live service configuration without validating downstream circuit breakers.",
+        "Do not purge unprocessed queues or event streams without dead-letter archiving."
+      ],
+      "latency_ms": 226.53,
+      "expected_family_retrieved": true
+    },
+    {
+      "case_id": "eval-novel-5",
+      "incident_family": null,
+      "variant_type": "novel",
+      "memory_enabled": false,
+      "historical_match_found": false,
+      "recalled_incident_id": null,
+      "match_strength": "None",
+      "root_cause": "First-principles hypothesis: observed symptoms (Worker subrequest quota exceeded (50 subrequests per invocation), Edge returning HTTP 1101 Worker Threw Exception to end users, Origin shielding cache bypassed causing 300% traffic surge on origin, Personalized geo-pricing feature failing across EU regions) indicate resource saturation, dependency failure, or connection exhaustion on cdn-edge-gateway.",
+      "runbook": "RB-CDN-EDGE-GATEWAY-STATELESS-TRIAGE",
+      "failed_mitigations": [
+        "Avoid rolling restarts on cdn-edge-gateway without verifying downstream dependencies.",
+        "Do not scale pod replicas horizontally if underlying shared database or queue is saturated."
+      ],
+      "latency_ms": 0.33,
+      "expected_family_retrieved": true
+    }
+  ]
+}

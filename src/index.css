@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #020408;
+    color: #e0e2eb;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+@keyframes pulse-flow-rev {
+  to {
+    stroke-dashoffset: 40;
+  }
+}
+@keyframes radar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes severed-flash {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.2; }
+}
+
+.catenary-pulse-teal {
+  stroke-dasharray: 8 16;
+  animation: dash-flow 1.8s linear infinite;
+}
+.catenary-pulse-cyan {
+  stroke-dasharray: 8 16;
+  animation: dash-flow 1.4s linear infinite;
+}
+.catenary-pulse-amber {
+  stroke-dasharray: 6 14;
+  animation: pulse-flow-rev 2.2s linear infinite;
+}
+.severed-cord {
+  animation: severed-flash 2.5s ease-in-out infinite;
+}
+.radar-sweep {
+  animation: radar-spin 6s linear infinite;
+}
+.radar-counter {
+  animation: radar-spin 14s linear infinite reverse;
+}
+
+@keyframes dashTravel {
+  0% { stroke-dashoffset: 48; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes stressPulse {
+  0%, 100% { opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255, 79, 115, 0.8)); }
+  50% { opacity: 0.4; filter: drop-shadow(0 0 8px rgba(255, 79, 115, 1)); }
+}
+@keyframes packetMotion1 {
+  0% { cx: 42%; cy: 38%; r: 3; opacity: 1; }
+  100% { cx: 38%; cy: 52%; r: 1.5; opacity: 0.2; }
+}
+@keyframes packetMotion2 {
+  0% { cx: 42%; cy: 38%; r: 3; opacity: 1; }
+  100% { cx: 52%; cy: 44%; r: 1.5; opacity: 0.2; }
+}
+@keyframes packetMotion3 {
+  0% { cx: 42%; cy: 38%; r: 3; opacity: 1; }
+  100% { cx: 35%; cy: 28%; r: 1.5; opacity: 0.2; }
+}
