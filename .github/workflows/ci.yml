@@ -57,7 +57,7 @@ jobs:
         run: pip-audit -r requirements.txt
 
       - name: Run Complete Test Suite
-        run: pytest -v
+        run: pytest -v --cov=app --cov-report=term-missing --cov-report=xml
 
   docker-build:
     name: Validate Docker Container Build
