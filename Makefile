@@ -2,7 +2,7 @@ PYTHON ?= python
 PIP ?= pip
 NPM ?= npm
 
-.PHONY: install test lint typecheck audit build frontend ci docker
+.PHONY: install test coverage lint typecheck audit build frontend smoke docker ci
 
 install:
 	$(PIP) install -r requirements.txt
@@ -11,6 +11,9 @@ install:
 
 test:
 	pytest -v
+
+coverage:
+	pytest -v --cov=app --cov-report=term-missing --cov-report=xml
 
 lint:
 	ruff check app/
@@ -25,10 +28,13 @@ audit:
 build:
 	$(NPM) run build
 
+smoke:
+	node scripts/frontend-smoke.mjs
+
 frontend:
 	$(NPM) run dev
 
 docker:
 	docker build --pull -t incidentops-copilot:local .
 
-ci: lint typecheck audit test build
+ci: lint typecheck audit coverage build smoke
