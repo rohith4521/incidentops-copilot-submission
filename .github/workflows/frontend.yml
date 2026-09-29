@@ -34,3 +34,5 @@ jobs:
         run: npm run build
       - name: Production artifact smoke test
         run: npm run smoke
+      - name: Frontend credibility contract
+        run: npm run credibility-smoke
