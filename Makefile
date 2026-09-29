@@ -40,4 +40,4 @@ frontend:
 docker:
 	docker build --pull -t incidentops-copilot:local .
 
-ci: lint typecheck audit coverage build smoke
+ci: lint typecheck audit coverage build smoke credibility-smoke docker
