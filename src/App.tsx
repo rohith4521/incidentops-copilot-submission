@@ -76,24 +76,42 @@ export default function App() {
     showToast(`Scenario switched to ${id}`);
   };
 
-  // Real Backend connection: Execute Runbook
+  // Real backend connection: dry-run only. Production-changing execution is never simulated as successful.
   const handleExecuteRunbook = async () => {
     setRunbookStatus('EXECUTING');
+
+    const runbookId =
+      activeScenarioId === 'INC-108'
+        ? 'RB-REDIS-TLS-ROTATE'
+        : activeScenarioId === 'INC-112'
+          ? 'RB-K8S-SCALE-LIMITS'
+          : 'RB-PGBOUNCER-120';
+
     try {
-      // Connect to real backend runbooks API
-      const runbookId = activeScenarioId === 'INC-108' ? 'RB-REDIS-TLS-ROTATE' : activeScenarioId === 'INC-112' ? 'RB-K8S-SCALE-LIMITS' : 'RB-PGBOUNCER-120';
-      await fetch(`/api/runbooks/${runbookId}/execute`, {
+      const response = await fetch(`/api/runbooks/${runbookId}/simulate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incident_id: activeScenarioId, mode: 'automated' }),
-      }).catch(() => null);
+        body: JSON.stringify({ executor: 'oncall-sre' }),
+      });
+
+      if (!response.ok) {
+        let detail = `HTTP ${response.status}`;
+        try {
+          const payload = await response.json();
+          detail = payload?.detail ?? detail;
+        } catch {
+          // Keep the HTTP status when the response is not JSON.
+        }
+        setRunbookStatus('IDLE');
+        showToast(`Runbook simulation blocked: ${detail}`);
+        return;
+      }
+
+      setRunbookStatus('EXECUTED');
+      showToast('Approved runbook dry-run simulation completed successfully.');
     } catch {
-      // Fallback if offline
-    } finally {
-      setTimeout(() => {
-        setRunbookStatus('EXECUTED');
-        showToast('Runbook executed successfully. Active mitigation verified.');
-      }, 700);
+      setRunbookStatus('IDLE');
+      showToast('Runbook simulation unavailable. No remediation was executed.');
     }
   };
 
