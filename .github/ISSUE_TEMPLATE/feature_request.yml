@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose an evidence-backed improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What operational problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or use case
+      description: Explain why this is needed and how it could be validated.
+  - type: checkboxes
+    id: trust
+    attributes:
+      label: Trust and safety
+      options:
+        - label: This proposal preserves the distinction between retrieved, relevant, trusted, and verified memory.
+          required: true
+        - label: This proposal does not require automatic production remediation without an explicit safety boundary.
+          required: true
