@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const dist = "dist";
+const dist = "app/static/dist";
 
 if (!existsSync(join(dist, "index.html"))) {
   throw new Error("Frontend smoke test failed: dist/index.html is missing.");
