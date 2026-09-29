@@ -23,11 +23,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@1190a97
         with:
           languages: python
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@1190a97
+      - uses: github/codeql-action/analyze@1190a97
         with:
           category: /language:python
 
@@ -37,10 +37,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@1190a97
         with:
           languages: javascript-typescript
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@1190a97
+      - uses: github/codeql-action/analyze@1190a97
         with:
           category: /language:javascript-typescript
